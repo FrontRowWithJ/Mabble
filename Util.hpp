@@ -2,22 +2,10 @@
 #define UTIL_H
 #endif
 
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "LinkedList.h"
-
-
-#ifndef BOOLEAN
-#define BOOLEAN
-typedef int boolean;
-enum
-{
-    FALSE,
-    TRUE
-};
-#endif
+#include <iostream>
+#include <string>
+#include "LinkedList.hpp"
+using namespace std;
 
 #ifndef POSITION
 #define POSITION
@@ -27,15 +15,18 @@ typedef struct BoardPosition
     int j;
 } Position;
 #endif
+
 #define BUFFER_SIZE 4096
+
 #define MAX_BOARD_SIZE 150
 #define EMPTY '\0'
-typedef unsigned char byte_t;
 
 #ifndef SUCCESS
 #define SUCCESS 1
 #endif
 
-#ifndef ERROR
+#ifndef FAILURE
 #define FAILURE 0
 #endif
+
+typedef unsigned char byte_t;

@@ -1,118 +1,90 @@
-#include "Eval.h"
+#include "Eval.hpp"
 
-int main(int argc, char **argv)
+long evaluate(string statement, evalResult_t *code)
 {
-    int res = -64+18*77+12-86/9;
-    printf("%d\n", res);
-    char *test = argc == 1 ? "-64+18*77+12-86/9=53*5*5" : argv[1];
-    int equalPos = equal_pos_of(test);
-    boolean is_left_v = is_valid_equation_structure(test, 0, equalPos);
-    boolean is_right_v = is_valid_equation_structure(test, equalPos + 1, strlen(test));
-    char *left = substring_of(test, 0, equalPos);
-    char *right = substring_of(test, equalPos + 1, strlen(test));
-
-    printf("The left side: (%s) structure is %s\n", left, is_left_v ? "valid" : "invalid");
-    printf("The right side: (%s) structure is %s\n", right, is_right_v ? "valid" : "invalid");
-    evalResult_t code;
-    evaluate(test, &code);
-    printf("The statement (%s) is%s sound\n", test, code == EVAL_SUCCESS ? "" : "n't");
-    size_t leftLen;
-    size_t rightLen;
-    if (is_left_v && is_right_v)
-    {
-        Token *leftTokens = get_tokens(test, &leftLen, 0, equalPos);
-        Token *rightTokens = get_tokens(test, &rightLen, equalPos + 1, strlen(test));
-        printf("left: %ld\nright: %ld\n", eval(leftTokens, leftLen), eval(rightTokens, rightLen));
-    }
-}
-
-//from start inclusive to end exclusive
-char *substring_of(char *string, int start, int end)
-{
-    char *result = calloc(end - start + 1, sizeof(char));
-    for (int i = start; i < end; i++)
-    {
-        result[i - start] = string[i];
-    }
-    return result;
-}
-void evaluate(char *statement, evalResult_t *code)
-{
-    if (strlen(statement) < 3)
+    if (statement.length() < 3)
     {
         *code = EVAL_STRING_TOO_SHORT;
-        return;
+        return ERROR;
     }
     if (num_of_equals(statement) != 1)
     {
         *code = EVAL_INCORRECT_NUM_OF_EQUALS;
-        return;
+        return ERROR;
     }
     int equalPos = equal_pos_of(statement);
     if (!check_string(statement))
     {
         *code = EVAL_INVALID_CHARACTER;
-        return;
+        return ERROR;
     }
     //evaluate left
     if (!is_valid_equation_structure(statement, 0, equalPos))
     {
         *code = EVAL_INVALID_STATEMENT_STRUCTURE_LEFT;
-        return;
+        return ERROR;
     }
     //evaluate right
-    if (!is_valid_equation_structure(statement, equalPos + 1, strlen(statement)))
+    if (!is_valid_equation_structure(statement, equalPos + 1, statement.length()))
     {
         *code = EVAL_INVALID_STATEMENT_STRUCTURE_RIGHT;
-        return;
+        return ERROR;
     }
     size_t leftLen, rightLen;
     Token *leftTokens, *rightTokens;
     leftTokens = get_tokens(statement, &leftLen, 0, equalPos);
-    rightTokens = get_tokens(statement, &rightLen, equalPos + 1, strlen(statement));
+    rightTokens = get_tokens(statement, &rightLen, equalPos + 1, statement.length());
     long left = eval(leftTokens, leftLen);
     long right = eval(rightTokens, rightLen);
+    long res;
     if (left != right)
+    {
         *code = EVAL_STATEMENT_DOES_NOT_EQUAL_RESULT;
+        res = ERROR;
+    }
     else
+    {
         *code = EVAL_SUCCESS;
-    free(leftTokens);
-    free(rightTokens);
+        res = right;
+    }
+    delete[] leftTokens;
+    delete[] rightTokens;
+    return res;
 }
 
-boolean check_string(char *str)
+bool check_string(string str)
 {
-    for (int i = 0; i < strlen(str); i++)
+    for (int i = 0; i < str.length(); i++)
         if (!(IS_NUMBER(str[i])) && !(IS_OPERATOR(str[i])))
-            return FALSE;
-    return TRUE;
+            return false;
+    return true;
 }
 
-boolean is_valid_equation_structure(char *statement, int start, int end)
+bool is_valid_equation_structure(string statement, int start, int end)
 {
-    char prev = '\0';
+    char prev = EMPTY;
     int offset = 0;
     if (statement[start] == MULTIPLY_OP || statement[start] == DIVIDE_OP)
-        return FALSE;
+        return false;
     if (statement[start] == ADD_OP || statement[start] == SUBTRACT_OP)
         offset++;
-        for (int i = start + offset; i < end - 1; i++)
-        {
-            if (IS_NUMBER(statement[i - 1]))
-                continue;
-            if (IS_DMAS_OPERATOR(statement[i - 1]))
-                if (IS_DMAS_OPERATOR(statement[i]))
-                    return FALSE;
-        }
+    for (int i = start + offset; i < end - 1; i++)
+    {
+        if (IS_NUMBER(statement[i - 1]))
+            continue;
+        if (IS_DMAS_OPERATOR(statement[i - 1]))
+            if (IS_DMAS_OPERATOR(statement[i]))
+                return false;
+    }
     return !(IS_OPERATOR(statement[end - 1])) && IS_NUMBER(statement[end - 1]);
 }
 
-boolean has_operator(char *statement)
+bool has_operator(string statement)
 {
-    for (int i = 0; i < strlen(statement); i++)
+    for (int i = 0; i < statement.length(); i++)
         if (IS_DMAS_OPERATOR(statement[i]))
-            return TRUE;
-    return FALSE;
+            return true;
+    return false;
 }
 
 long calculate(long a, const char op, long b)
@@ -131,21 +103,21 @@ long calculate(long a, const char op, long b)
     return -1;
 }
 
-Token *get_tokens(char *statement, size_t *num_of_tokens, int start, int end)
+Token *get_tokens(string statement, size_t *num_of_tokens, int start, int end)
 {
     int numOfTokens = 0;
-    boolean inNumber = FALSE;
+    bool inNumber = false;
     for (int i = start; i < end; i++)
     {
         if (IS_NUMBER(statement[i]) && !inNumber)
         {
             numOfTokens++;
-            inNumber = TRUE;
+            inNumber = true;
         }
         else
         {
             numOfTokens++;
-            inNumber = FALSE;
+            inNumber = false;
         }
     }
     int factor = 1;
@@ -156,7 +128,7 @@ Token *get_tokens(char *statement, size_t *num_of_tokens, int start, int end)
         factor = statement[start] == ADD_OP ? 1 : -1;
         offset = 1;
     }
-    Token *tokens = malloc(numOfTokens * sizeof(Token));
+    Token *tokens = new Token[numOfTokens];
     int index = 0;
     int number = 0;
     for (int i = start + offset; i < end; i++)
@@ -225,26 +197,26 @@ void print_tokens(Token *t, size_t len)
     printf("\n");
 }
 
-int num_of_equals(char *statement)
+int num_of_equals(string statement)
 {
     int total = 0;
-    for (int i = 0; i < strlen(statement); i++)
+    for (int i = 0; i < statement.length(); i++)
         if (statement[i] == EQUAL_OP)
             total++;
     return total;
 }
 
-boolean is_number(char *statement, int start)
+bool is_number(string statement, int start)
 {
-    for (int i = start; i < strlen(statement); i++)
+    for (int i = start; i < statement.length(); i++)
         if (!(IS_NUMBER(statement[i])))
-            return FALSE;
-    return TRUE;
+            return false;
+    return true;
 }
 
-int equal_pos_of(char *statement)
+int equal_pos_of(string statement)
 {
-    for (int i = strlen(statement) - 1; i > -1; i--)
+    for (int i = statement.length() - 1; i > -1; i--)
         if (statement[i] == EQUAL_OP)
             return i;
     return ERROR;

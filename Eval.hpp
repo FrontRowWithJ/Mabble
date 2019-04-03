@@ -3,7 +3,7 @@
 #endif
 
 #ifndef UTIL_H
-#include "Util.h"
+#include "Util.hpp"
 #endif
 
 #define ERROR -1
@@ -32,22 +32,19 @@ typedef enum RESULT_CODE
     EVAL_STATEMENT_DOES_NOT_EQUAL_RESULT
 } evalResult_t;
 
-typedef union token
-{
+typedef union token {
     long number;
     char op;
 } Token;
 
-boolean has_operator(char *statement);
-Token *get_tokens(char *statement, size_t *num_of_tokens, int start, int end);
+bool has_operator(string statement);
+Token *get_tokens(string statement, size_t *num_of_tokens, int start, int end);
 long eval(Token *tokens, size_t len);
 long calculate(long a, char op, long b);
 void print_tokens(Token *t, size_t len);
-void evaluate(char *statement, evalResult_t *code);
-int num_of_equals(char *statement);
-boolean is_number(char *statement, int start);
-int equal_pos_of(char *statement);
-boolean check_string(char *statement);
-boolean is_valid_equation_structure(char *statement, int start, int end);
-//generates a substring of a string from start inclusive to end exlusive
-char *substring_of(char *string, int start, int end);
+long evaluate(string statement, evalResult_t *code);
+int num_of_equals(string statement);
+bool is_number(string statement, int start);
+int equal_pos_of(string statement);
+bool check_string(string statement);
+bool is_valid_equation_structure(string statement, int start, int end);
