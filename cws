@@ -1,0 +1,16 @@
+#!/bin/bash
+#compile a cpp file with the sfml library
+# $1 = filename.cpp
+# $2 = outputname
+
+if [ $1 ]; then
+    if [ $2 ]; then
+        fname=$(cut -d'.' -f1 <<<"$1")
+        g++ -c $1
+        g++ -o $2 $fname".o" -lsfml-graphics -lsfml-window -lsfml-system
+    else 
+        echo "WHERE THE FUCK IS ARGUMENT TWO NIGGA!!"
+    fi
+else 
+    echo "WHERE THE FUCK IS ARGUMENT ONE NIGGA!!!"
+fi
