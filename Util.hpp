@@ -5,8 +5,12 @@
 #include <iostream>
 #include <string>
 #include "LinkedList.hpp"
+#include <functional>
+#include <math.h>
+#include <SFML/Graphics.hpp>
+#include <SFML/System.hpp>
 using namespace std;
-
+using namespace sf;
 #ifndef POSITION
 #define POSITION
 typedef struct BoardPosition
@@ -16,9 +20,15 @@ typedef struct BoardPosition
 } Position;
 #endif
 
+#ifndef MIN_OF
+#define MIN_OF(X, Y) \
+    X > Y ? Y : X
+#endif
 #define BUFFER_SIZE 4096
+#define X_OFFSET 2
+#define Y_OFFSET 22
 
-#define MAX_BOARD_SIZE 150
+#define MAX_BOARD_SIZE 151
 #define EMPTY '\0'
 
 #ifndef SUCCESS
