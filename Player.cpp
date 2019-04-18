@@ -1,6 +1,5 @@
 #include "Player.hpp"
 
-
 //properties of player:
 // ? indicates if this property isn't certain
 // ? boolean isTurn
