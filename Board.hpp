@@ -1,12 +1,20 @@
 #ifndef BOARD_H
 #define BOARD_H
 
+#ifndef BOARDTILE_H
+#include "BoardTile.hpp"
+#endif
+
 #ifndef UTIL_H
 #include "Util.hpp"
 #endif
 
 #ifndef EVAL_H
 #include "Eval.hpp"
+#endif
+
+#ifndef TILERACK_H
+#include "TileRack.hpp"
 #endif
 
 #define IS_EQUALS(V1, V2) \
@@ -19,7 +27,7 @@ class Board
     typedef enum
     {
         RIGHT,
-        DOWN
+        DOWN,
     } Direction;
 
     typedef struct
@@ -31,39 +39,36 @@ class Board
 
     typedef struct
     {
+        int i;
+        int j;
         char value;
-        bool canPlace;
-        bool canRemove;
-        bool hasChecked;
-    } Square;
+    } TileData;
+
+  private:
+    BoardTile **table;
+    float width;
+    int rowWidth;
+    float xPos;
+    float yPos;
+    Tile nullTile = Tile();
+    Tile *selectedTile;
 
   public:
-    Square **table;
-    size_t width;
-
-  public:
-    Board(size_t width);                                                                                        //
-    void place_piece(char piece, int i, int j, LinkedList placedPieces);                                        //
-    void check_players_turn(LinkedList placedPieces, Equation *boardEquations, size_t len, evalResult_t *code); //
-    string gen_incorrect_statement_string(LinkedList incorrectEquatioins);
-    Position get_equation_begin_pos(Direction d, int i, int j);
-    string get_equation_as_string(Position p, Direction d);
-    bool is_idle(LinkedList placedPieces);
-    bool is_same_line(LinkedList placedPieces);
-    bool is_player_equations_valid(LinkedList equations, LinkedList equationResults, LinkedList placedPieces);
-    LinkedList remove_valid_equations(LinkedList equations, LinkedList equationResult);
-    int get_min_i(LinkedList placedPieces);
-    int get_min_j(LinkedList placedPieces);
-    int get_max_i(LinkedList placedPieces);
-    int get_max_j(LinkedList placedPieces);
-    void set_to_cant_remove(LinkedList placedPieces);
-    void get_statements(int i, int j, Position *vector_list, size_t *vector_len);
+    Board(float width, int rowWidth, float xPos, float yPos, Font font, Color textColor, Color bgColor);
+    bool place_tile(float mouseX, float mouseY, float screenX, float screenY, LinkedList *placedTiles);
+    bool remove_tile(float mouseX, float mouseY, float screenX, float screenY, LinkedList *placedTiles);
+    //* checkBoard
+    void check_players_turn(LinkedList *placedPieces, Equation *boardEquations, int len, evalResult_t *code);
     void clear_board();
-    void uncheck_board();
-    void print_vector_list(Position *list, size_t vector_len);
-    Position *filter_vector(Position *vector_list, size_t vector_len, size_t *new_len);
-    Equation *to_array(LinkedList llist, size_t *arrayLen);
-    Equation *gen_board_equation(Position *listOfPositions, size_t vector_len, size_t *equationLen);
-    Equation get_equation(Equation *equations, size_t len, int i, int j);
+    void draw(RenderWindow *window);
+    void set_selected_tile(Tile *selectedTile);
+    void clear_selected_tile(bool canClear);
+    static int compare(void *a, void *b);
+    static char *to_string(void *a);
+    void print_list(LinkedList *list);
+    BoardTile **get_table();
+
+  private:
+    void gen_board(Font font, Color textColor, Color bgColor);
 };
 #endif
