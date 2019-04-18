@@ -1,39 +1,12 @@
 #include "Eval.hpp"
 
-long evaluate(string statement, evalResult_t *code)
+long evaluate(string *statement, evalResult_t *code, bool hasBeenChecked)
 {
-    if (statement.length() < 3)
-    {
-        *code = EVAL_STRING_TOO_SHORT;
-        return ERROR;
-    }
-    if (num_of_equals(statement) != 1)
-    {
-        *code = EVAL_INCORRECT_NUM_OF_EQUALS;
-        return ERROR;
-    }
     int equalPos = equal_pos_of(statement);
-    if (!check_string(statement))
-    {
-        *code = EVAL_INVALID_CHARACTER;
-        return ERROR;
-    }
-    //evaluate left
-    if (!is_valid_equation_structure(statement, 0, equalPos))
-    {
-        *code = EVAL_INVALID_STATEMENT_STRUCTURE_LEFT;
-        return ERROR;
-    }
-    //evaluate right
-    if (!is_valid_equation_structure(statement, equalPos + 1, statement.length()))
-    {
-        *code = EVAL_INVALID_STATEMENT_STRUCTURE_RIGHT;
-        return ERROR;
-    }
     size_t leftLen, rightLen;
     Token *leftTokens, *rightTokens;
     leftTokens = get_tokens(statement, &leftLen, 0, equalPos);
-    rightTokens = get_tokens(statement, &rightLen, equalPos + 1, statement.length());
+    rightTokens = get_tokens(statement, &rightLen, equalPos + 1, statement->length());
     long left = eval(leftTokens, leftLen);
     long right = eval(rightTokens, rightLen);
     long res;
@@ -52,37 +25,55 @@ long evaluate(string statement, evalResult_t *code)
     return res;
 }
 
-bool check_string(string str)
+evalResult_t check_equation(string *statement)
 {
-    for (int i = 0; i < str.length(); i++)
-        if (!(IS_NUMBER(str[i])) && !(IS_OPERATOR(str[i])))
+    if (statement->length() < 3)
+        return EVAL_STRING_TOO_SHORT;
+    if (num_of_equals(statement) != 1)
+        return EVAL_INCORRECT_NUM_OF_EQUALS;
+    int equalPos = equal_pos_of(statement);
+    if (!check_string(statement))
+        return EVAL_INVALID_CHARACTER;
+    //evaluate left
+    if (!is_valid_equation_structure(statement, 0, equalPos))
+        return EVAL_INVALID_STATEMENT_STRUCTURE_LEFT;
+    //evaluate right
+    if (!is_valid_equation_structure(statement, equalPos + 1, statement->length()))
+        return EVAL_INVALID_STATEMENT_STRUCTURE_RIGHT;
+    return EVAL_VALID_EQUATION;
+}
+
+bool check_string(string *str)
+{
+    for (int i = 0; i < str->length(); i++)
+        if (!(IS_NUMBER((*str)[i])) && !(IS_OPERATOR((*str)[i])))
             return false;
     return true;
 }
 
-bool is_valid_equation_structure(string statement, int start, int end)
+bool is_valid_equation_structure(string *statement, int start, int end)
 {
     char prev = EMPTY;
     int offset = 0;
-    if (statement[start] == MULTIPLY_OP || statement[start] == DIVIDE_OP)
+    if ((*statement)[start] == MULTIPLY_OP || (*statement)[start] == DIVIDE_OP)
         return false;
-    if (statement[start] == ADD_OP || statement[start] == SUBTRACT_OP)
+    if ((*statement)[start] == ADD_OP || (*statement)[start] == SUBTRACT_OP)
         offset++;
     for (int i = start + offset; i < end - 1; i++)
     {
-        if (IS_NUMBER(statement[i - 1]))
+        if (IS_NUMBER((*statement)[i - 1]))
             continue;
-        if (IS_DMAS_OPERATOR(statement[i - 1]))
-            if (IS_DMAS_OPERATOR(statement[i]))
+        if (IS_DMAS_OPERATOR((*statement)[i - 1]))
+            if (IS_DMAS_OPERATOR((*statement)[i]))
                 return false;
     }
-    return !(IS_OPERATOR(statement[end - 1])) && IS_NUMBER(statement[end - 1]);
+    return !(IS_OPERATOR((*statement)[end - 1])) && IS_NUMBER((*statement)[end - 1]);
 }
 
-bool has_operator(string statement)
+bool has_operator(string *statement)
 {
-    for (int i = 0; i < statement.length(); i++)
-        if (IS_DMAS_OPERATOR(statement[i]))
+    for (int i = 0; i < statement->length(); i++)
+        if (IS_DMAS_OPERATOR((*statement)[i]))
             return true;
     return false;
 }
@@ -103,13 +94,13 @@ long calculate(long a, const char op, long b)
     return -1;
 }
 
-Token *get_tokens(string statement, size_t *num_of_tokens, int start, int end)
+Token *get_tokens(string *statement, size_t *num_of_tokens, int start, int end)
 {
     int numOfTokens = 0;
     bool inNumber = false;
     for (int i = start; i < end; i++)
     {
-        if (IS_NUMBER(statement[i]) && !inNumber)
+        if (IS_NUMBER((*statement)[i]) && !inNumber)
         {
             numOfTokens++;
             inNumber = true;
@@ -122,10 +113,10 @@ Token *get_tokens(string statement, size_t *num_of_tokens, int start, int end)
     }
     int factor = 1;
     int offset = 0;
-    if (statement[start] == ADD_OP || statement[start] == SUBTRACT_OP)
+    if ((*statement)[start] == ADD_OP || (*statement)[start] == SUBTRACT_OP)
     {
         numOfTokens--;
-        factor = statement[start] == ADD_OP ? 1 : -1;
+        factor = (*statement)[start] == ADD_OP ? 1 : -1;
         offset = 1;
     }
     Token *tokens = new Token[numOfTokens];
@@ -133,12 +124,12 @@ Token *get_tokens(string statement, size_t *num_of_tokens, int start, int end)
     int number = 0;
     for (int i = start + offset; i < end; i++)
     {
-        if (IS_NUMBER(statement[i]))
-            number = number * 10 + (statement[i] - '0');
+        if (IS_NUMBER((*statement)[i]))
+            number = number * 10 + ((*statement)[i] - '0');
         else
         {
             tokens[index++].number = number;
-            tokens[index++].op = statement[i];
+            tokens[index++].op = (*statement)[i];
             number = 0;
         }
     }
@@ -197,27 +188,27 @@ void print_tokens(Token *t, size_t len)
     printf("\n");
 }
 
-int num_of_equals(string statement)
+int num_of_equals(string *statement)
 {
     int total = 0;
-    for (int i = 0; i < statement.length(); i++)
-        if (statement[i] == EQUAL_OP)
+    for (int i = 0; i < statement->length(); i++)
+        if ((*statement)[i] == EQUAL_OP)
             total++;
     return total;
 }
 
-bool is_number(string statement, int start)
+bool is_number(string *statement, int start)
 {
-    for (int i = start; i < statement.length(); i++)
-        if (!(IS_NUMBER(statement[i])))
+    for (int i = start; i < statement->length(); i++)
+        if (!(IS_NUMBER((*statement)[i])))
             return false;
     return true;
 }
 
-int equal_pos_of(string statement)
+int equal_pos_of(string *statement)
 {
-    for (int i = statement.length() - 1; i > -1; i--)
-        if (statement[i] == EQUAL_OP)
+    for (int i = statement->length() - 1; i > -1; i--)
+        if ((*statement)[i] == EQUAL_OP)
             return i;
     return ERROR;
 }
