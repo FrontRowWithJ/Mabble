@@ -7,7 +7,7 @@
 
 //This is a class that will define the behaviour of a rectangle with rounded edges
 /*            a  
-        /-----------\    
+        /‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\    
         |           |
       b |           | d
         |           |
@@ -22,7 +22,10 @@ private:
   float yPos;
   float width;
   float height;
-  float radius;
+  float radiusA;
+  float radiusB;
+  float radiusC;
+  float radiusD;
   Color fillColor;
   Color outlineColor;
   int pointCount; //This only applies to the curved part of the rectangle
@@ -43,17 +46,22 @@ private:
 
 public:
   RoundedRectangle();
+  RoundedRectangle(float xPos, float yPos, float width, float height, float radiusA, float radiusB, float radiusC, float radiusD, int pointCount);
   RoundedRectangle(float xPos, float yPos, float width, float height, float radius, int pointCount);
+  RoundedRectangle(float xPos, float yPos, float width, float height, float radiusA, float radiusB, int pointCount);
   void draw(RenderWindow *window);
   void set_fill_color(Color fillColor);
   Color get_fill_color();
   void set_outline_color(Color outlineColor);
   Color get_outline_color();
   int get_point_count();
-
+  void set_radiusA(float radiusA);
+  void set_radiusB(float radiusB);
+  void set_radiusC(float radiusC);
+  void set_radiusD(float radiusD);
 private:
   void gen_shape();
-  Vertex *gen_curve(double centreX, double centreY, double curveStart);
+  Vertex *gen_curve(double centreX, double centreY, double curveStart, double radius);
   void copy_to_shape(Vertex *vertices);
 };
 #endif
