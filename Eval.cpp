@@ -1,6 +1,6 @@
 #include "Eval.hpp"
 
-long evaluate(string *statement, evalResult_t *code, bool hasBeenChecked)
+long evaluate(string *statement, evalResult_t *code)
 {
     int equalPos = equal_pos_of(statement);
     size_t leftLen, rightLen;
@@ -12,7 +12,7 @@ long evaluate(string *statement, evalResult_t *code, bool hasBeenChecked)
     long res;
     if (left != right)
     {
-        *code = EVAL_STATEMENT_DOES_NOT_EQUAL_RESULT;
+        *code = EVAL_LEFT_DOES_NOT_EQUAL_RIGHT;
         res = ERROR;
     }
     else
