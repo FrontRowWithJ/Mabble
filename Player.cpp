@@ -18,6 +18,6 @@ LinkedList Player::getPlacedPieces()
     LinkedList result = LinkedList();
     for (int i = 0; i < PIECE_COUNT; i++)
         if (currentPieces[i].isPlaced)
-            result.insert((void *)&currentPieces[i]);
+            result.insert(static_cast<void *>(&currentPieces[i]));
     return result;
 }
