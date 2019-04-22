@@ -1,12 +1,11 @@
 #ifndef EVAL_H
 #define EVAL_H
-#endif
 
 #ifndef UTIL_H
 #include "Util.hpp"
 #endif
 
-#define ERROR -1
+#define ERROR 0
 #define IS_OPERATOR(C) \
     C == ADD_OP || C == MULTIPLY_OP || C == SUBTRACT_OP || C == DIVIDE_OP || C == EQUAL_OP
 #define IS_DMAS_OPERATOR(C) \
@@ -30,7 +29,7 @@ typedef enum RESULT_CODE
     EVAL_INCORRECT_NUM_OF_EQUALS,
     EVAL_INCORRECT_EQUAL_POS,
     EVAL_RESULT_NOT_A_NUMBER,
-    EVAL_STATEMENT_DOES_NOT_EQUAL_RESULT,
+    EVAL_LEFT_DOES_NOT_EQUAL_RIGHT,
 } evalResult_t;
 
 typedef union token {
@@ -50,3 +49,4 @@ int equal_pos_of(string *statement);
 bool check_string(string *statement);
 bool is_valid_equation_structure(string *statement, int start, int end);
 evalResult_t check_equation(string *equation);
+#endif
