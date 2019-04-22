@@ -27,7 +27,7 @@ private:
   bool isCenter;
   Tile nullTile = Tile();
   Tile *tile = &nullTile;
-  BoardTileState state = TILE_EMPTY; //determines wether or not the selected pieces on the board are changeable
+  BoardTileState state; //determines wether or not the selected pieces on the board are changeable
   Text tileText;
   Color textColor;
   Font font;
