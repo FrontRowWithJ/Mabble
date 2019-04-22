@@ -108,19 +108,19 @@ bool LinkedList::swap(Node *node1, Node *node2)
     node2->val = tmp;
 }
 
-bool LinkedList::llcat(LinkedList list)
+bool LinkedList::llcat(LinkedList *list)
 {
-    if (head == NULL && list.head == NULL)
+    if (head == NULL && list->head == NULL)
         return false;
     if (head == NULL)
     {
-        head = list.head;
+        head = list->head;
         return true;
     }
-    if (list.head == NULL)
+    if (list->head == NULL)
         return false;
-    tail->next = list.head;
-    tail = list.tail;
+    tail->next = list->head;
+    tail = list->tail;
     return true;
 }
 
@@ -166,13 +166,13 @@ LinkedList LinkedList::clone()
 
 void LinkedList::print(function<char *(void *)> to_string)
 {
-    char *result = new char[count() + 1]();
+    string result = "";
     for (Node *node = head; node != NULL; node = node->next)
     {
-        strcat(result, to_string(node->val));
-        strcat(result, ", ");
+        result += to_string(node->val);
+        result += ", ";
     }
-    printf("%s\n", result);
+    printf("%s\n", result.c_str());
 }
 
 void LinkedList::sort(function<int(void *, void *)> compare)
