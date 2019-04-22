@@ -36,7 +36,7 @@ public:
   Node *get_parent(Node *node, function<int(void *, void *)> compare);
   int count();
   bool swap(void *val1, void *val2, function<int(void *, void *)> compare);
-  bool llcat(LinkedList list);
+  bool llcat(LinkedList *list);
   LinkedList reverse_list();
   LinkedList clone();
   void print(function<char *(void *)> to_string);
