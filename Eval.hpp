@@ -1,9 +1,7 @@
 #ifndef EVAL_H
 #define EVAL_H
 
-#ifndef UTIL_H
 #include "Util.hpp"
-#endif
 
 #define ERROR 0
 #define IS_OPERATOR(C) \

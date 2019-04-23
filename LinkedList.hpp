@@ -1,9 +1,7 @@
 #ifndef LINKEDLIST_H
 #define LINKEDLIST_H
-#ifndef UTIL_H
-#include "Util.hpp"
-#endif
 
+#include "Util.hpp"
 #include <functional>
 #include <iostream>
 #include <stdio.h>

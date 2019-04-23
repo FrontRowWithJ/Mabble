@@ -1,13 +1,9 @@
 #ifndef TILERACK_H
 #define TILERACK_H
 
-#ifndef UTIL_H
 #include "Util.hpp"
-#endif
-
-#ifndef TILE_H
 #include "Tile.hpp"
-#endif
+
 #define NUM_OF_TILES 10
 #define NUM_OF_OPERATORS 4
 #define NUM_OF_OPERANDS 5

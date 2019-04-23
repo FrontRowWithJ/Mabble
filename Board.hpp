@@ -1,21 +1,11 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#ifndef BOARDTILE_H
+
 #include "BoardTile.hpp"
-#endif
-
-#ifndef UTIL_H
 #include "Util.hpp"
-#endif
-
-#ifndef EVAL_H
 #include "Eval.hpp"
-#endif
-
-#ifndef TILERACK_H
 #include "TileRack.hpp"
-#endif
 
 #define IS_EQUALS(V1, V2) \
   V1.i == V2.i &&V1.j == V2.j

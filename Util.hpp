@@ -1,6 +1,5 @@
 #ifndef UTIL_H
 #define UTIL_H
-#endif
 
 #include <iostream>
 #include <string>
@@ -40,3 +39,4 @@ typedef struct BoardPosition
 #endif
 
 typedef unsigned char byte_t;
+#endif

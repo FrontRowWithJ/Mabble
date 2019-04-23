@@ -1,15 +1,8 @@
 #ifndef BOARDTILE_H
 #define BOARDTILE_H
 
-#ifndef TILE_H
 #include "Tile.hpp"
-#endif
-
-#ifndef UTIL_H
 #include "Util.hpp"
-#endif
-
-#endif
 
 typedef enum
 {
@@ -56,3 +49,5 @@ public:
   void update_text(char value, Color textColor);
   bool is_center();
 };
+
+#endif

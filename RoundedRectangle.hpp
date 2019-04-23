@@ -1,9 +1,7 @@
 #ifndef ROUNDEDRECTANGLESHAPE_H
 #define ROUNDEDRECTANGLESHAPE_H
 
-#ifndef UTIL_H
 #include "Util.hpp"
-#endif
 
 //This is a class that will define the behaviour of a rectangle with rounded edges
 /*            a  

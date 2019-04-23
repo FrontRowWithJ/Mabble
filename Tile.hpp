@@ -1,9 +1,7 @@
 #ifndef TILE_H
 #define TILE_H
 
-#ifndef UTIL_H
 #include "Util.hpp"
-#endif
 // This class defines the behavior of a Mabble Tile
 //? Each rack contains 10 board pieces (5 operands, 4 operators and 1 equal sign);
 //! Each piece will have functionality s.t when clicked upon their value will be saved as a global variable

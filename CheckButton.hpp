@@ -1,17 +1,9 @@
 #ifndef CHECKBUTTON_H
 #define CHECKBUTTON_H
 
-#ifndef UTIL_H
 #include "Util.hpp"
-#endif
-
-#ifndef BOARD_H
 #include "Board.hpp"
-#endif
-
-#ifndef EVAL_H
 #include "Eval.hpp"
-#endif
 
 class CheckButton
 {
