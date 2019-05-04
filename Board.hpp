@@ -1,7 +1,6 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-
 #include "BoardTile.hpp"
 #include "Util.hpp"
 #include "Eval.hpp"
@@ -11,11 +10,15 @@
   V1.i == V2.i &&V1.j == V2.j
 #define IS_BOARD_POS_EQUAL(X, Y) \
   X.pos.i == Y.pos.i &&X.pos.j == Y.pos.j &&X.dir == Y.dir
-typedef struct
+typedef struct MabbleTile
 {
   int i;
   int j;
   char value;
+  bool operator==(struct MabbleTile td)
+  {
+    return i == td.i && j == td.j && value == td.value;
+  }
 } TileData;
 class Board
 {
@@ -43,6 +46,7 @@ public:
   BoardTile ***get_table();
   float get_width();
   int get_rowLen();
+
 private:
   void gen_board(Font font, Color textColor, Color bgColor);
 };
