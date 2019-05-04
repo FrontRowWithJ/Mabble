@@ -374,9 +374,10 @@ void CheckButton::check_player(LinkedList *placedTiles, Board *board, Player *pl
                         {
                             printf("Noice, you've got %ld points!\n", score);
                             //? Give the player his/her points.
-                            //! End the turn and switch control to the other player
+                            //? End the turn and switch control to the other player
                             //? set tiles to perm
-                            //? add the equations to known equations (saved to the board)
+                            //? add the equations to known equations (saved to the board) 
+                            //! Check if the game is over. 
                             player1->update_score(score);
                             player1->update_tileRack();
                             set_to_cant_remove(placedTiles, board->get_table());
