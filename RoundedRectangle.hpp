@@ -57,6 +57,11 @@ public:
   void set_radiusB(float radiusB);
   void set_radiusC(float radiusC);
   void set_radiusD(float radiusD);
+  float get_xPos();
+  float get_yPos();
+  float get_width();
+  float get_height();
+  float set_position(float xPos, float yPos);
 private:
   void gen_shape();
   Vertex *gen_curve(double centreX, double centreY, double curveStart, double radius);
