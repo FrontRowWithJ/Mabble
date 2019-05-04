@@ -6,6 +6,8 @@
 #include "LinkedList.hpp"
 #include <functional>
 #include <math.h>
+#include <chrono>
+#include <unistd.h>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 using namespace std;
@@ -26,6 +28,7 @@ typedef struct BoardPosition
 #define BUFFER_SIZE 4096
 #define X_OFFSET 2
 #define Y_OFFSET 22
+#define CHARACTER_OFFSET 0x30
 
 #define MAX_BOARD_SIZE 151
 #define EMPTY '\0'
