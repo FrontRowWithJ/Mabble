@@ -4,7 +4,7 @@ Tile::Tile()
 {
     this->isNull = true;
     this->value = EMPTY;
-    isOperator = false;
+    this->isOperator = false;
     this->isSelected = false;
 }
 
