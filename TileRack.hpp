@@ -17,18 +17,19 @@ private:
   float width;
   float height;
   float fgScale;
-  Tile nullTile = Tile();
   RectangleShape *visuals;
   int numOfVisuals;
   Tile tiles[NUM_OF_TILES];
+
 public:
   TileRack();
   TileRack(float xPos, float yPos, float width, float height, float fgScale);
-  void gen_tiles(char *operands);
+  void gen_tiles(const char *operands);
   void gen_visuals();
   void draw(RenderWindow *window);
   Tile *select_tile(float mouseX, float mouseY, float screenX, float screenY);
   bool deselect_tile(float mouseX, float mouseY, float screenX, float screenY);
   bool is_tile_selected();
+  bool update_tile(int index, char value, bool isNull);
 };
 #endif
