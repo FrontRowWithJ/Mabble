@@ -27,6 +27,7 @@ RoundedRectangle::RoundedRectangle(float xPos, float yPos, float width, float he
     numOfCoords = 4 * (2 + pointCount);
     gen_shape();
 }
+
 RoundedRectangle::RoundedRectangle(float xPos, float yPos, float width, float height, float radius, int pointCount) : RoundedRectangle(xPos, yPos, width, height, radius, radius, radius, radius, pointCount)
 {
 }
@@ -34,6 +35,7 @@ RoundedRectangle::RoundedRectangle(float xPos, float yPos, float width, float he
 RoundedRectangle::RoundedRectangle(float xPos, float yPos, float width, float height, float radiusA, float radiusB, int pointCount) : RoundedRectangle(xPos, yPos, width, height, radiusA, radiusA, radiusB, radiusB, pointCount)
 {
 }
+
 void RoundedRectangle::draw(RenderWindow *window)
 {
     window->draw(r1);
@@ -106,8 +108,8 @@ Vertex *RoundedRectangle::gen_curve(double centreX, double centreY, double start
     double theta = start;
     for (int i = 0; i < pointCount; i++)
     {
-        double x = (radius)*cos(theta + i * inc);
-        double y = (radius)*sin(theta + i * inc);
+        double x = radius * cos(theta + i * inc);
+        double y = radius * sin(theta + i * inc);
         Vertex v(Vector2f(centreX + x, centreY - y));
         vertices[i] = v;
     }
@@ -170,32 +172,54 @@ void RoundedRectangle::set_radiusD(float radiusD)
     this->radiusD = radiusD;
 }
 
-int main(int argc, char **argv)
+float RoundedRectangle::get_width()
 {
-    RoundedRectangle r(80, 80, 100, 40, 10, 0, 7);
-    RenderWindow *window = new RenderWindow(VideoMode(600, 600), "Test", Style::Close);
-    r.set_fill_color(Color::White);
-    r.set_outline_color(Color::Blue);
-    CircleShape c(20, 100);
-    c.setFillColor(Color::White);
-    c.setPosition(122, 80);
-    c.setOutlineColor(Color::Red);
-    c.setOutlineThickness(1);
-    Event e;
-    while (window->isOpen())
+    return width;
+}
+
+float RoundedRectangle::get_height()
+{
+    return height;
+}
+
+float RoundedRectangle::get_xPos()
+{
+    return xPos;
+}
+
+float RoundedRectangle::get_yPos()
+{
+    return yPos;
+}
+
+float RoundedRectangle::set_position(float xPos, float yPos)
+{
+    xPos += width;
+    yPos += radiusA;
+    this->xPos = xPos;
+    this->yPos = yPos;
+    float originX = roundedRect[0].position.x;
+    float originY = roundedRect[0].position.y;
+    for (int i = 0; i < numOfCoords; i++)
     {
-        while (window->pollEvent(e))
-        {
-            switch (e.type)
-            {
-            case Event::Closed:
-                window->close();
-                break;
-            }
-        }
-        window->clear(Color::Black);
-        r.draw(window);
-        // window->draw(c);
-        window->display();
+        roundedRect[i].position.x += xPos - originX;
+        roundedRect[i].position.y += yPos - originY;
     }
+    int index = 0;
+    xPos -= width;
+    yPos -= radiusA;
+    double centreX = xPos + width - radiusA;
+    double centreY = yPos + radiusA;
+    circles[index++].setPosition(centreX - radiusA, centreY - radiusA);
+    centreX = xPos + radiusB;
+    centreY = yPos + radiusB;
+    circles[index++].setPosition(centreX - radiusB, centreY - radiusB);
+    centreX = xPos + radiusC;
+    centreY = yPos + height - radiusC;
+    circles[index++].setPosition(centreX - radiusC, centreY - radiusC);
+    centreX = xPos + width - radiusD;
+    centreY = yPos + height - radiusD;
+    circles[index++].setPosition(centreX - radiusD, centreY - radiusD);
+    r1.setPosition(Vector2f(xPos + radiusB, yPos));
+    r2.setPosition(Vector2f(xPos, yPos + radiusB));
 }
