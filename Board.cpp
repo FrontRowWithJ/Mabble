@@ -32,8 +32,8 @@ bool Board::place_tile(float mouseX, float mouseY, float screenX, float screenY,
                 table[i][j]->set_tile(selectedTile);
                 table[i][j]->set_state(TILE_FULL_TEMP);
                 selectedTile->set_state(ON_BOARD_TEMP);
-                selectedTile->set_is_selected(false);
-                table[i][j]->update_text(selectedTile->get_value(), selectedTile->get_text_color());
+                selectedTile->set_isSelected(false);
+                table[i][j]->update_text(selectedTile->get_value(), selectedTile->get_textColor());
                 *td = (TileData){i, j, selectedTile->get_value()};
                 cast = static_cast<void *>(td);
                 placedTiles->insert(cast);
@@ -51,8 +51,8 @@ bool Board::place_tile(float mouseX, float mouseY, float screenX, float screenY,
                 placedTiles->delete_node(cast, compare);
                 table[i][j]->set_tile(selectedTile);
                 selectedTile->set_state(ON_BOARD_TEMP);
-                table[i][j]->update_text(selectedTile->get_value(), selectedTile->get_text_color());
-                selectedTile->set_is_selected(false);
+                table[i][j]->update_text(selectedTile->get_value(), selectedTile->get_textColor());
+                selectedTile->set_isSelected(false);
                 td->value = selectedTile->get_value();
                 cast = static_cast<void *>(td);
                 placedTiles->insert(cast);
@@ -153,7 +153,7 @@ int Board::compare(void *a, void *b)
 {
     TileData *td1 = static_cast<TileData *>(a);
     TileData *td2 = static_cast<TileData *>(b);
-    return td1->i == td2->i && td1->j == td2->j ? 0 : 1;
+    return *td1 == *td2 ? 0 : 1;
 }
 
 char *Board::to_string(void *a)
@@ -172,7 +172,7 @@ void Board::print_list(LinkedList *list)
 BoardTile ***Board::get_table()
 {
     return table;
-} 
+}
 
 float Board::get_width()
 {
