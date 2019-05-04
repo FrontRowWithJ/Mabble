@@ -1,10 +1,9 @@
 #include "CheckButton.hpp"
-
 CheckButton::CheckButton()
 {
 }
 
-CheckButton::CheckButton(float width, float height, float xPos, float yPos, Font font)
+CheckButton::CheckButton(float width, float height, float xPos, float yPos, Font font, float turnXPos, float turnYPos)
 {
     this->width = width;
     this->height = height;
@@ -12,21 +11,24 @@ CheckButton::CheckButton(float width, float height, float xPos, float yPos, Font
     this->yPos = yPos;
     this->font = font;
     knownEquations = new LinkedList();
-    gen_visuals();
-    gen_text();
+    gen_visuals(turnXPos, turnYPos);
+    gen_text(turnXPos, turnYPos);
 }
 
-void CheckButton::check(float mousePosX, float mousePosY, float screenPosX, float screenPosY, Board board, LinkedList *placedTiles)
+void CheckButton::check(float mousePosX, float mousePosY, float screenPosX, float screenPosY, Board board, LinkedList *placedTiles, Player *playerOne, Player *playerTwo, bool *isPlayerOne)
 {
     float x = mousePosX - screenPosX + X_OFFSET;
     float y = mousePosY - screenPosY + Y_OFFSET;
     if (x >= xPos && x < xPos + width && y >= yPos && y < yPos + height)
     {
-        check_player(placedTiles, &board);
+        if (*isPlayerOne)
+            check_player(placedTiles, &board, playerOne, playerTwo, isPlayerOne);
+        else
+            check_player(placedTiles, &board, playerTwo, playerOne, isPlayerOne);
     }
 }
 
-void CheckButton::gen_visuals()
+void CheckButton::gen_visuals(float turnXPos, float turnYPos)
 {
     numOfVisuals = 0;
     RectangleShape bg(Vector2f(width, height));
@@ -40,15 +42,26 @@ void CheckButton::gen_visuals()
     visuals = new RectangleShape[numOfVisuals];
     visuals[0] = bg;
     visuals[1] = fg;
+    turnLable = new RoundedRectangle(turnXPos, turnYPos, 40, 20, 5, 10);
+    turnLable->set_fill_color(Color::Red);
+    turnLable->set_outline_color(Color::Blue);
 }
 
-void CheckButton::gen_text()
+void CheckButton::gen_text(float turnXpos, float turnYpos)
 {
     text.setFont(font);
     text.setString("Check");
     text.setFillColor(textColor);
     text.setCharacterSize(height);
-    text.setPosition(xPos + width / 5.f, yPos - height / 8.f);
+    FloatRect lb = text.getLocalBounds();
+    text.setOrigin(lb.left - xPos - (width - lb.width) / 2.f, lb.top - yPos - (height - lb.height) / 2.f);
+
+    turnText.setFont(font);
+    turnText.setString("Your Turn");
+    turnText.setFillColor(Color::Black);
+    turnText.setCharacterSize(turnLable->get_height());
+    lb = turnText.getLocalBounds();
+    turnText.setOrigin(lb.left - turnXpos - (turnLable->get_width() - lb.width) / 2, lb.top - turnYpos - (turnLable->get_height() - lb.top) / 2);
 }
 
 void CheckButton::draw(RenderWindow *window)
@@ -56,6 +69,8 @@ void CheckButton::draw(RenderWindow *window)
     for (int i = 0; i < numOfVisuals; i++)
         window->draw(visuals[i]);
     window->draw(text);
+    turnLable->draw(window);
+    window->draw(turnText);
 }
 
 CheckButton::Direction CheckButton::is_same_line(LinkedList *placedTiles, BoardTile ***table)
@@ -194,12 +209,12 @@ CheckButton::Equation *CheckButton::gen_equation(BoardTile ***table, int rowLen,
     {
     case CheckButton::DOWN:
         for (int i = startI; i < rowLen && table[i][startJ]->get_state() != TILE_EMPTY; i++)
-            value.append(new char[2]{table[i][startJ]->get_tile()->get_value(), '\0'});
+            value.append(new char[2]{table[i][startJ]->get_value(), '\0'});
         *eq = (CheckButton::Equation){startI, startJ, CheckButton::DOWN, value};
         return eq;
     case CheckButton::RIGHT:
         for (int j = startJ; j < rowLen && table[startI][j]->get_state() != TILE_EMPTY; j++)
-            value.append(new char[2]{table[startI][j]->get_tile()->get_value(), '\0'});
+            value.append(new char[2]{table[startI][j]->get_value(), '\0'});
         *eq = (CheckButton::Equation){startI, startJ, CheckButton::RIGHT, value};
         return eq;
     }
@@ -209,8 +224,7 @@ int CheckButton::compare_equation(void *a, void *b)
 {
     Equation *e1 = static_cast<Equation *>(a);
     Equation *e2 = static_cast<Equation *>(b);
-    int cmp = strcmp(e1->value.c_str(), e2->value.c_str());
-    return (e1->dir == e2->dir && e1->startI == e2->startI && e1->startJ == e2->startJ && cmp == EQUAL) ? 0 : 1;
+    return *e1 == *e2 ? 0 : 1;
 }
 
 void CheckButton::filter_equation_list(LinkedList *equationList)
@@ -325,15 +339,15 @@ bool CheckButton::are_equations_balanced(evalResult_t *resultCodes, int len)
     return true;
 }
 
-//after I check if there are any invalid equations
-//if there are any invalid equations
-//then I split the list between valid and invalid equations
-//I then print to the user the invalid equations and re request for the user to make a change
-//If there are no invalid equations then I evaluate the equations to see if the left side is the same as the right side
-//if there are some invalid equations I will prompt to the user that some of the equations are incorrect
-//if not tell the user congrats and the give him/her their points
+// After I check if there are any invalid equations
+// If there are any invalid equations
+// Then I split the list between valid and invalid equations
+// I then print to the user the invalid equations and re request for the user to make a change
+// If there are no invalid equations then I evaluate the equations to see if the left side is the same as the right side
+// If there are some invalid equations I will prompt to the user that some of the equations are incorrect
+// If not tell the user congrats and the give him/her their points
 
-void CheckButton::check_player(LinkedList *placedTiles, Board *board)
+void CheckButton::check_player(LinkedList *placedTiles, Board *board, Player *player1, Player *player2, bool *isPlayerOne)
 {
     if (placedTiles->head != NULL)
     {
@@ -359,11 +373,19 @@ void CheckButton::check_player(LinkedList *placedTiles, Board *board)
                         if (are_equations_balanced(calcCodes, length))
                         {
                             printf("Noice, you've got %ld points!\n", score);
-                            //! Give the player his/her points.
+                            //? Give the player his/her points.
                             //! End the turn and switch control to the other player
-                            //! set tiles to perm
-                            //! add the equations to known equations (daved to the board)
+                            //? set tiles to perm
+                            //? add the equations to known equations (saved to the board)
+                            player1->update_score(score);
+                            player1->update_tileRack();
                             set_to_cant_remove(placedTiles, board->get_table());
+                            placedTiles->empty_list();
+                            knownEquations->llcat(equationList);
+                            *isPlayerOne = !(*isPlayerOne);
+                            player1->switch_turn();
+                            player2->switch_turn();
+                            move_turnLable(player2->get_xPos() + player2->get_width() / 2, turnLable->get_yPos());
                         }
                         else
                         {
@@ -447,6 +469,14 @@ char *CheckButton::to_string(void *a)
     return result;
 }
 
-void CheckButton::add_to_known_equations(LinkedList *equations){
+void CheckButton::add_to_known_equations(LinkedList *equations)
+{
     knownEquations->llcat(equations);
+}
+
+void CheckButton::move_turnLable(float xPos, float yPos)
+{
+    turnLable->set_position(xPos, yPos);
+    FloatRect lb = turnText.getLocalBounds();
+    turnText.setOrigin(lb.left - xPos - (turnLable->get_width() - lb.width) / 2, lb.top - yPos - (turnLable->get_height() - lb.top) / 2);
 }
