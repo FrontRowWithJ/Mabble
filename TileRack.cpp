@@ -10,33 +10,23 @@ TileRack::TileRack(float xPos, float yPos, float width, float height, float fgSc
     this->fgScale = fgScale > 1 ? 1 : fgScale;
 }
 
-void TileRack::gen_tiles(char *operands)
+void TileRack::gen_tiles(const char *operands)
 {
     int i = 0;
-    float tileWidth = (width * fgScale) / NUM_OF_TILES;
+    float xOff = width * (1.f - fgScale) / 2;
+    float tileWidth = (width - height - xOff) / NUM_OF_TILES;
     float xOffset = 0;
     Font font;
     font.loadFromFile("GeosansLight.ttf");
     Vector2f pos = visuals[1].getPosition(), dim = visuals[1].getSize();
     float yOffset = (dim.y - tileWidth) / 2;
-    for (; i < NUM_OF_OPERANDS; i++)
+    for (int i = 0; i < NUM_OF_TILES; i++)
     {
-        tiles[i] = Tile(operands[i], pos.x + xOffset, pos.y + yOffset, tileWidth, font, OPERAND);
+        tiles[i] = Tile(operands[i], pos.x + xOffset, pos.y + yOffset, tileWidth, font);
         tiles[i].gen_tile_visuals();
         tiles[i].gen_text();
         xOffset += tileWidth;
     }
-    char operators[4] = {'+', '-', '/', '*'};
-    for (; i < NUM_OF_OPERANDS + NUM_OF_OPERATORS; i++)
-    {
-        tiles[i] = Tile(operators[i - NUM_OF_OPERANDS], pos.x + xOffset, pos.y + yOffset, tileWidth, font, OPERATOR);
-        tiles[i].gen_tile_visuals();
-        tiles[i].gen_text();
-        xOffset += tileWidth;
-    }
-    tiles[i] = Tile('=', pos.x + xOffset, pos.y + yOffset, tileWidth, font, EQUAL_SIGN);
-    tiles[i].gen_tile_visuals();
-    tiles[i].gen_text();
 }
 
 void TileRack::gen_visuals()
@@ -50,14 +40,12 @@ void TileRack::gen_visuals()
     bg.setOutlineColor(Color::Black);
     bg.setOutlineThickness(1);
     numOfVisuals++;
-
-    RectangleShape fg(Vector2f(width * fgScale, height * fgScale));
     float xOffset = width * (1.f - fgScale) / 2;
     float yOffset = height * (1.f - fgScale) / 2;
-    fg.setPosition(Vector2f(xPos + xOffset, yPos + yOffset));
+    RectangleShape fg(Vector2f(width - height - xOffset, height * fgScale));
+    fg.setPosition(Vector2f(xPos + xOffset / 2.f, yPos + yOffset));
     fg.setFillColor(Color(255, 165, 0, 255));
     numOfVisuals++;
-
     visuals = new RectangleShape[numOfVisuals];
     visuals[0] = bg;
     visuals[1] = fg;
@@ -80,7 +68,7 @@ Tile *TileRack::select_tile(float mouseX, float mouseY, float screenX, float scr
     float tileYpos = tiles->get_ypos();
     x -= tileXpos;
     x /= width;
-    if (y >= tileYpos && y < tileYpos + width && x >= 0 && x < NUM_OF_TILES && tiles[(int)x].get_state() != ON_BOARD_TEMP && tiles[(int)x].get_state() != ON_BOARD_PERM && !is_tile_selected())
+    if (y >= tileYpos && y < tileYpos + width && x >= 0 && x < NUM_OF_TILES && (tiles[(int)x].get_state() != ON_BOARD_TEMP || tiles[(int)x].is_operator()) && tiles[(int)x].get_state() != ON_BOARD_PERM && !is_tile_selected())
     {
         return tiles[(int)x].select_tile();
     }
@@ -106,9 +94,31 @@ bool TileRack::deselect_tile(float mouseX, float mouseY, float screenX, float sc
     x /= width;
     if (y >= tileYpos && y < tileYpos + width && x >= 0 && x < NUM_OF_TILES && tiles[(int)x].get_state() != ON_BOARD_PERM && tiles[(int)x].get_state() != ON_BOARD_TEMP && is_tile_selected())
     {
-        printf("state: %d\n", tiles[(int)x].get_state());
         tiles[(int)x].deselect_tile();
         return true;
     }
     return false;
+}
+
+bool TileRack::update_tile(int index, char value, bool isNull)
+{
+    if (index < 0 || index >= NUM_OF_TILES)
+        return false;
+    Tile t = tiles[index];
+    TileState ts = t.get_state();
+    if (ts == ON_RACK || ts == IS_SELECTED)
+        return false;
+    if (isNull)
+    {
+        tiles[index] = Tile(t.get_xPos(), t.get_yPos(), t.get_width(), t.get_font());
+        tiles[index].gen_tile_visuals();
+        tiles[index].gen_text();
+    }
+    else
+    {
+        tiles[index] = Tile(value, t.get_xPos(), t.get_yPos(), t.get_width(), t.get_font());
+        tiles[index].gen_tile_visuals();
+        tiles[index].gen_text();
+    }
+    return true;
 }
