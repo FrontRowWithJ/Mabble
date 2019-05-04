@@ -52,8 +52,36 @@ bool LinkedList::delete_node(void *val, function<int(void *, void *)> compare)
     }
     else
     {
-        Node *p = get_parent(node, compare);
-        p->next = node->next;
+        Node *parent = get_parent(node, compare);
+        parent->next = node->next;
+        delete node;
+    }
+    return true;
+}
+
+//only use this function if you can guaruntee that this node exists in the linked list
+bool LinkedList::delete_node(Node *node)
+{
+    if (head == NULL)
+        return false;
+    if (node == NULL)
+        return false;
+    if (node == head)
+    {
+        head = head->next;
+        delete node;
+    }
+    else if (node == tail)
+    {
+        Node *parent = get_parent(node);
+        parent->next = NULL;
+        tail = parent;
+        delete node;
+    }
+    else
+    {
+        Node *parent = get_parent(node);
+        parent->next = node->next;
         delete node;
     }
     return true;
@@ -69,10 +97,28 @@ Node *LinkedList::find(void *val, function<int(void *, void *)> compare)
     return NULL;
 }
 
+Node *LinkedList::find(Node *node)
+{
+    if (head == NULL)
+        return NULL;
+    Node *n = head;
+    for (; n != NULL && n != node; n = n->next)
+        ;
+    return n;
+}
+
 Node *LinkedList::get_parent(Node *node, function<int(void *, void *)> compare)
 {
     Node *n = head;
     for (; !(compare(n->next->val, node->val) == EQUAL); n = n->next)
+        ;
+    return n;
+}
+
+Node *LinkedList::get_parent(Node *node)
+{
+    Node *n = head;
+    for (; n->next != NULL && n->next != node; n = n->next)
         ;
     return n;
 }
@@ -112,15 +158,8 @@ bool LinkedList::llcat(LinkedList *list)
 {
     if (head == NULL && list->head == NULL)
         return false;
-    if (head == NULL)
-    {
-        head = list->head;
-        return true;
-    }
-    if (list->head == NULL)
-        return false;
-    tail->next = list->head;
-    tail = list->tail;
+    while (list->count() != 0)
+        insert(list->pop());
     return true;
 }
 
@@ -156,11 +195,12 @@ void LinkedList::insert(LinkedList list, void *val)
     }
 }
 
-LinkedList LinkedList::clone()
+LinkedList LinkedList::clone(function<void *(void *)> clone_of)
 {
+    //should the clone function produce a new pointer for each  val? Yes
     LinkedList l = LinkedList();
     for (Node *node = head; node != NULL; node = node->next)
-        insert(l, node->val);
+        insert(l, clone_of(node->val));
     return l;
 }
 
@@ -215,4 +255,21 @@ Node *LinkedList::remove(void *val, function<int(void *, void *)> compare)
         return node;
     }
     return NULL;
+}
+
+void LinkedList::empty_list()
+{
+    while (head != NULL)
+    {
+        Node *h = head;
+        head = head->next;
+        delete h;
+    }
+    tail = NULL;
+}
+void *LinkedList::pop()
+{
+    Node *h = head;
+    head = head->next;
+    return h->val;
 }
