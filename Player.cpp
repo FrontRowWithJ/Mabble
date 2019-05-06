@@ -163,3 +163,13 @@ float Player::get_height()
 {
     return height;
 }
+
+long Player::get_score()
+{
+    return score;
+}
+
+string Player::get_playerName()
+{
+    return playerName;
+}
