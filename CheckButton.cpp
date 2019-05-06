@@ -10,12 +10,14 @@ CheckButton::CheckButton(float width, float height, float xPos, float yPos, Font
     this->xPos = xPos;
     this->yPos = yPos;
     this->font = font;
+    this->turnsPassed = 0;
+    this->isWinnerKnown = false;
     knownEquations = new LinkedList();
     gen_visuals(turnXPos, turnYPos);
     gen_text(turnXPos, turnYPos);
 }
 
-void CheckButton::check(float mousePosX, float mousePosY, float screenPosX, float screenPosY, Board board, LinkedList *placedTiles, Player *playerOne, Player *playerTwo, bool *isPlayerOne)
+void CheckButton::check(float mousePosX, float mousePosY, float screenPosX, float screenPosY, Board board, LinkedList *placedTiles, Player *playerOne, Player *playerTwo, bool *isPlayerOne, float screenWidth, float screenHeight)
 {
     float x = mousePosX - screenPosX + X_OFFSET;
     float y = mousePosY - screenPosY + Y_OFFSET;
@@ -25,6 +27,14 @@ void CheckButton::check(float mousePosX, float mousePosY, float screenPosX, floa
             check_player(placedTiles, &board, playerOne, playerTwo, isPlayerOne);
         else
             check_player(placedTiles, &board, playerTwo, playerOne, isPlayerOne);
+        if (is_game_over())
+        {
+            show_winner(playerOne, playerTwo, screenWidth, screenHeight);
+            if (*isPlayerOne)
+                playerOne->switch_turn();
+            else
+                playerTwo->switch_turn();
+        }
     }
 }
 
@@ -71,6 +81,11 @@ void CheckButton::draw(RenderWindow *window)
     window->draw(text);
     turnLable->draw(window);
     window->draw(turnText);
+    if (isWinnerKnown)
+    {
+        winnerBoard->draw(window);
+        window->draw(winnerText);
+    }
 }
 
 CheckButton::Direction CheckButton::is_same_line(LinkedList *placedTiles, BoardTile ***table)
@@ -356,28 +371,23 @@ void CheckButton::check_player(LinkedList *placedTiles, Board *board, Player *pl
         {
             if (are_tiles_contiguous(d, board->get_table(), placedTiles, board->get_rowLen()))
             {
-                printf("The tiles are contiguous\n");
                 if (are_tiles_connected(placedTiles, board->get_table(), board->get_rowLen()))
                 {
-                    printf("The pieces are placed correctly\n");
                     LinkedList *equationList = gen_equation_list(board->get_table(), board->get_rowLen(), placedTiles);
-                    equationList->print(CheckButton::to_string);
                     int len = 0;
                     evalResult_t *structureCodes = check_structure(equationList, &len);
                     if (are_equation_structure_valid(structureCodes, len))
                     {
-                        printf("good structure!\n");
                         int length = 0;
                         long score = 0;
                         evalResult_t *calcCodes = evaluate_equations(equationList, &score, &length);
                         if (are_equations_balanced(calcCodes, length))
                         {
-                            printf("Noice, you've got %ld points!\n", score);
                             //? Give the player his/her points.
                             //? End the turn and switch control to the other player
                             //? set tiles to perm
-                            //? add the equations to known equations (saved to the board) 
-                            //! Check if the game is over. 
+                            //? add the equations to known equations (saved to the board)
+                            //! Check if the game is over.
                             player1->update_score(score);
                             player1->update_tileRack();
                             set_to_cant_remove(placedTiles, board->get_table());
@@ -387,6 +397,9 @@ void CheckButton::check_player(LinkedList *placedTiles, Board *board, Player *pl
                             player1->switch_turn();
                             player2->switch_turn();
                             move_turnLable(player2->get_xPos() + player2->get_width() / 2, turnLable->get_yPos());
+                            turnsPassed++;
+                            printf("turnsPassed: %d\n", turnsPassed);
+                            printf("There are %d turns left.\n", MAX_NUMBER_OF_TURNS - turnsPassed / 2);
                         }
                         else
                         {
@@ -402,36 +415,8 @@ void CheckButton::check_player(LinkedList *placedTiles, Board *board, Player *pl
                         cout << incurrstatements << endl;
                     }
                 }
-                else
-                {
-                    printf("Uhm, you placed them wrong.\n");
-                }
-            }
-            else
-            {
-                printf("There's a gap mate.\n");
             }
         }
-        if (d == RIGHT)
-        {
-            printf("The list is horizontal\n");
-        }
-        else if (d == DOWN)
-        {
-            printf("The list is vertical\n");
-        }
-        else if (d == UNKOWN)
-        {
-            printf("There is only one piece placed\n");
-        }
-        else
-        {
-            printf("The list is gay\n");
-        }
-    }
-    else
-    {
-        printf("Uhm the list is null\n");
     }
 }
 
@@ -480,4 +465,35 @@ void CheckButton::move_turnLable(float xPos, float yPos)
     turnLable->set_position(xPos, yPos);
     FloatRect lb = turnText.getLocalBounds();
     turnText.setOrigin(lb.left - xPos - (turnLable->get_width() - lb.width) / 2, lb.top - yPos - (turnLable->get_height() - lb.top) / 2);
+}
+
+void CheckButton::pass_turn()
+{
+    turnsPassed++;
+}
+
+bool CheckButton::is_game_over()
+{
+    return 2 * MAX_NUMBER_OF_TURNS == turnsPassed;
+}
+
+void CheckButton::show_winner(Player *p1, Player *p2, float width, float height)
+{
+    string anouncement;
+    if (p1->get_score() > p2->get_score())
+        anouncement = p1->get_playerName() + " wins!";
+    else if (p2->get_score() > p1->get_score())
+        anouncement = p2->get_playerName() + " wins!";
+    else
+        anouncement = "It's a draw!";
+    winnerText.setFont(font);
+    winnerText.setFillColor(Color::Green);
+    winnerText.setCharacterSize(30);
+    winnerText.setString(anouncement);
+    FloatRect lb = winnerText.getLocalBounds();
+    winnerBoard = new RoundedRectangle(width / 2.f - (lb.width * 1.3) / 2, height / 2.f - (lb.height * 1.3) / 2, lb.width * 1.3, lb.height * 1.3, 10, 10);
+    winnerBoard->set_fill_color(Color::Black);
+    winnerBoard->set_outline_color(Color::Magenta);
+    winnerText.setOrigin(GET_ORIGIN(winnerBoard));
+    isWinnerKnown = true;
 }
