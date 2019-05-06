@@ -7,7 +7,7 @@
 #include "TileBag.hpp"
 
 #define PIECE_COUNT 10
-#define TOTAL_PIECES 40
+#define TOTAL_PIECES 150
 
 //properties of player:
 // ? indicates if this property isn't certain
@@ -82,5 +82,7 @@ public:
 	float get_yPos();
 	float get_width();
 	float get_height();
+	long get_score();
+	string get_playerName();
 };
 #endif
