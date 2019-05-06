@@ -6,6 +6,9 @@
 #include "Eval.hpp"
 #include "Player.hpp"
 #include "RoundedRectangle.hpp"
+#define MAX_NUMBER_OF_TURNS 1
+#define GET_ORIGIN(X) \
+	lb.left - X->get_xPos() - (X->get_width() - lb.width) / 2, lb.top - X->get_yPos() - (X->get_height() - lb.height) / 2
 
 class CheckButton
 {
@@ -42,6 +45,7 @@ class CheckButton
 	float height;
 	float xPos;
 	float yPos;
+	int turnsPassed;
 	Color bgColor = Color::White;
 	Color fgColor = Color::Black;
 	Font font;
@@ -52,11 +56,14 @@ class CheckButton
 	LinkedList *knownEquations;
 	RoundedRectangle *turnLable;
 	Text turnText;
+	bool isWinnerKnown;
+	RoundedRectangle *winnerBoard;
+	Text winnerText;
 
   public:
 	CheckButton();
 	CheckButton(float width, float height, float xPos, float yPos, Font font, float turnXPos, float turnYPos);
-	void check(float mousePosX, float mousePosY, float screenPosX, float screenPosY, Board mabbleBoard, LinkedList *placedTiles, Player *playerOne, Player *playerTwo, bool *isPlayerOne); //this function needs to be more elaborated
+	void check(float mousePosX, float mousePosY, float screenPosX, float screenPosY, Board mabbleBoard, LinkedList *placedTiles, Player *playerOne, Player *playerTwo, bool *isPlayerOne, float screenWidth, float screenHeight); //this function needs to be more elaborated
 	void gen_visuals(float turnXPos, float turnYPos);
 	void gen_text(float turnXPos, float turnYPos);
 	void draw(RenderWindow *window);
@@ -73,7 +80,7 @@ class CheckButton
 	LinkedList *gen_equation_list(BoardTile ***table, int width, LinkedList *placedTiles);
 	Position get_equation_begin_pos(Direction d, BoardTile ***table, int i, int j);
 	Equation *gen_equation(BoardTile ***table, int width, Direction d, int i, int j);
-	void filter_equation_list(LinkedList *equationList); //!
+	void filter_equation_list(LinkedList *equationList);
 	string gen_incorrect_statement_string(LinkedList *equations);
 	void set_to_cant_remove(LinkedList *placedTiles, BoardTile ***table);
 	evalResult_t *check_structure(LinkedList *equations, int *len);
@@ -88,5 +95,8 @@ class CheckButton
 	bool are_tiles_connected(LinkedList *placedTiles, BoardTile ***table, int width);
 	bool is_tile_positioned_correctly(TileData *td, BoardTile ***table, int width);
 	void add_to_known_equations(LinkedList *equations);
+	void pass_turn();
+	bool is_game_over();
+	void show_winner(Player *p1, Player *p2, float screenWidth, float screenHeight);
 };
 #endif
