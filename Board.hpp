@@ -35,7 +35,6 @@ public:
   Board(float width, int rowLen, float xPos, float yPos, Font font, Color textColor, Color bgColor);
   bool place_tile(float mouseX, float mouseY, float screenX, float screenY, LinkedList *placedTiles);
   bool remove_tile(float mouseX, float mouseY, float screenX, float screenY, LinkedList *placedTiles);
-  //* checkBoard
   void clear_board();
   void draw(RenderWindow *window);
   void set_selected_tile(Tile *selectedTile);
