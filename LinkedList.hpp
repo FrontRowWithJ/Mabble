@@ -43,13 +43,13 @@ public:
   void sort(function<int(void *, void *)> compare);
   void empty_list();
   void *pop();
+  Node *get_parent(Node *node);
 
 private:
   int count_inner(Node *node);
   LinkedList reverse_inner(Node *node, LinkedList list);
   void insert(LinkedList list, void *val);
   bool swap(Node *node1, Node *node2);
-  Node *get_parent(Node *node);
 };
 
 #endif
