@@ -6,7 +6,7 @@
 #include "Eval.hpp"
 #include "Player.hpp"
 #include "RoundedRectangle.hpp"
-#define MAX_NUMBER_OF_TURNS 1
+#define MAX_NUMBER_OF_TURNS 10
 #define GET_ORIGIN(X) \
 	lb.left - X->get_xPos() - (X->get_width() - lb.width) / 2, lb.top - X->get_yPos() - (X->get_height() - lb.height) / 2
 
