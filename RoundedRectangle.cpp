@@ -8,23 +8,19 @@ RoundedRectangle::RoundedRectangle(float xPos, float yPos, float width, float he
 {
     this->xPos = xPos;
     this->yPos = yPos;
-    this->width = width;
-    this->height = height;
+    this->width = this->originalWidth = width;
+    this->height = this->originalHeight = height;
     this->pointCount = pointCount;
+    this->roundedRect = ConvexShape(4 * pointCount);
+    this->roundedRect.setOrigin(xPos, yPos);
+    this->roundedRect.setPosition(xPos, yPos);
     float minVal = min(width, height) / 2;
     this->radiusA = MIN_OF(radiusA, minVal);
     this->radiusB = MIN_OF(radiusB, minVal);
     this->radiusC = MIN_OF(radiusC, minVal);
     this->radiusD = MIN_OF(radiusD, minVal);
-    aStart = Vertex(Vector2f(xPos + width - radiusA, yPos));
-    aEnd = Vertex(Vector2f(xPos + radiusB, yPos));
-    bStart = Vertex(Vector2f(xPos, yPos + radiusB));
-    bEnd = Vertex(Vector2f(xPos, yPos + height - radiusC));
-    cStart = Vertex(Vector2f(xPos + radiusC, yPos + height));
-    cEnd = Vertex(Vector2f(xPos + width - radiusD, yPos + height));
-    dStart = Vertex(Vector2f(xPos + width, yPos + height - radiusD));
-    dEnd = Vertex(Vector2f(xPos + width, yPos + radiusA));
-    numOfCoords = 4 * (2 + pointCount);
+    this->isShadowPresent = false;
+    this->shadow = ConvexShape(4 + pointCount * 3);
     gen_shape();
 }
 
@@ -38,97 +34,67 @@ RoundedRectangle::RoundedRectangle(float xPos, float yPos, float width, float he
 
 void RoundedRectangle::draw(RenderWindow *window)
 {
-    window->draw(r1);
-    window->draw(r2);
-    for (int i = 0; i < 4; i++)
-        window->draw(circles[i]);
-    window->draw(&roundedRect[0], numOfCoords, sf::LineStrip);
+    if (isShadowPresent)
+    {
+        roundedRect.setFillColor(Color(0,0,0,0));
+        window->draw(shadow);
+    }
+    window->draw(roundedRect);
 }
 
 void RoundedRectangle::gen_shape()
 {
     int index = 0;
-    circles[0] = CircleShape(radiusA, 30);
-    circles[1] = CircleShape(radiusB, 30);
-    circles[2] = CircleShape(radiusC, 30);
-    circles[3] = CircleShape(radiusD, 30);
-    //first curve
     double centreX = xPos + width - radiusA;
     double centreY = yPos + radiusA;
-    Vertex *vertices = gen_curve(centreX, centreY, 0, radiusA);
-    copy_to_shape(vertices);
+    //first curve
+    Vector2f *vertices = gen_curve(centreX, centreY, 0, radiusA);
+    for (int i = 0; i < pointCount; index++, i++)
+        roundedRect.setPoint(index, vertices[i]);
 
-    circles[index++].setPosition(centreX - radiusA, centreY - radiusA);
-
-    roundedRect.push_back(aStart);
-    roundedRect.push_back(aEnd);
-
-    //second curve
+    // second curve
     centreX = xPos + radiusB;
     centreY = yPos + radiusB;
     vertices = gen_curve(centreX, centreY, M_PI_2, radiusB);
-    copy_to_shape(vertices);
-
-    circles[index++].setPosition(centreX - radiusB, centreY - radiusB);
-
-    roundedRect.push_back(bStart);
-    roundedRect.push_back(bEnd);
+    for (int i = 0; i < pointCount; index++, i++)
+        roundedRect.setPoint(index, vertices[i]);
 
     //third curve
     centreX = xPos + radiusC;
     centreY = yPos + height - radiusC;
     vertices = gen_curve(centreX, centreY, M_PI, radiusC);
-    copy_to_shape(vertices);
-
-    circles[index++].setPosition(centreX - radiusC, centreY - radiusC);
-
-    roundedRect.push_back(cStart);
-    roundedRect.push_back(cEnd);
+    for (int i = 0; i < pointCount; index++, i++)
+        roundedRect.setPoint(index, vertices[i]);
 
     //fourth curve
     centreX = xPos + width - radiusD;
     centreY = yPos + height - radiusD;
     vertices = gen_curve(centreX, centreY, M_PI + M_PI_2, radiusD);
-    copy_to_shape(vertices);
-
-    circles[index++].setPosition(centreX - radiusD, centreY - radiusD);
-
-    roundedRect.push_back(dStart);
-    roundedRect.push_back(dEnd);
-    r1 = RectangleShape(Vector2f(width - (radiusA + radiusB), height));
-    r1.setPosition(Vector2f(xPos + radiusB, yPos));
-    r2 = RectangleShape(Vector2f(width, height - (radiusB + radiusC)));
-    r2.setPosition(Vector2f(xPos, yPos + radiusB));
+    for (int i = 0; i < pointCount; index++, i++)
+        roundedRect.setPoint(index, vertices[i]);
+    roundedRect.setOutlineThickness(1.f);
 }
 
-Vertex *RoundedRectangle::gen_curve(double centreX, double centreY, double start, double radius)
+Vector2f *RoundedRectangle::gen_curve(double centreX, double centreY, double start, double radius)
 {
-    Vertex *vertices = new Vertex[pointCount];
+    Vector2f *vertices = new Vector2f[pointCount];
     double inc = M_PI_2 / (double)pointCount;
     double theta = start;
     for (int i = 0; i < pointCount; i++)
     {
         double x = radius * cos(theta + i * inc);
         double y = radius * sin(theta + i * inc);
-        Vertex v(Vector2f(centreX + x, centreY - y));
-        vertices[i] = v;
+        vertices[i] = Vector2f(centreX + x, centreY - y);
     }
     return vertices;
-}
-
-void RoundedRectangle::copy_to_shape(Vertex *vertices)
-{
-    for (int i = 0; i < pointCount; i++)
-        roundedRect.push_back(vertices[i]);
 }
 
 void RoundedRectangle::set_fill_color(Color fillColor)
 {
     this->fillColor = fillColor;
-    r1.setFillColor(fillColor);
-    r2.setFillColor(fillColor);
-    for (int i = 0; i < 4; i++)
-        circles[i].setFillColor(fillColor);
+    roundedRect.setFillColor(fillColor);
+    if (isShadowPresent)
+        shadow.setFillColor(fillColor);
 }
 
 Color RoundedRectangle::get_fill_color()
@@ -139,8 +105,9 @@ Color RoundedRectangle::get_fill_color()
 void RoundedRectangle::set_outline_color(Color outlineColor)
 {
     this->outlineColor = outlineColor;
-    for (int i = 0; i < numOfCoords; i++)
-        roundedRect[i].color = outlineColor;
+    roundedRect.setOutlineColor(outlineColor);
+    if (isShadowPresent)
+        shadow.setOutlineColor(outlineColor);
 }
 Color RoundedRectangle::get_outline_color()
 {
@@ -194,32 +161,67 @@ float RoundedRectangle::get_yPos()
 
 float RoundedRectangle::set_position(float xPos, float yPos)
 {
-    xPos += width;
-    yPos += radiusA;
     this->xPos = xPos;
     this->yPos = yPos;
-    float originX = roundedRect[0].position.x;
-    float originY = roundedRect[0].position.y;
-    for (int i = 0; i < numOfCoords; i++)
-    {
-        roundedRect[i].position.x += xPos - originX;
-        roundedRect[i].position.y += yPos - originY;
-    }
+    roundedRect.setPosition(xPos, yPos);
+    if (isShadowPresent)
+        shadow.setPosition(xPos, yPos);
+}
+
+void RoundedRectangle::gen_shadow(float width)
+{
     int index = 0;
-    xPos -= width;
-    yPos -= radiusA;
-    double centreX = xPos + width - radiusA;
-    double centreY = yPos + radiusA;
-    circles[index++].setPosition(centreX - radiusA, centreY - radiusA);
-    centreX = xPos + radiusB;
-    centreY = yPos + radiusB;
-    circles[index++].setPosition(centreX - radiusB, centreY - radiusB);
-    centreX = xPos + radiusC;
-    centreY = yPos + height - radiusC;
-    circles[index++].setPosition(centreX - radiusC, centreY - radiusC);
-    centreX = xPos + width - radiusD;
-    centreY = yPos + height - radiusD;
-    circles[index++].setPosition(centreX - radiusD, centreY - radiusD);
-    r1.setPosition(Vector2f(xPos + radiusB, yPos));
-    r2.setPosition(Vector2f(xPos, yPos + radiusB));
+    shadow.setOrigin(xPos, yPos);
+    shadow.setPosition(xPos, yPos);
+    Vector2f pos = roundedRect.getPoint((int)(pointCount * 2.5)) + 0.f;
+    shadow.setPoint(index++, pos);
+
+    pos = roundedRect.getPoint(3 * pointCount - 1) + width;
+    shadow.setPoint(index++, pos);
+    float centreX = xPos + this->width - radiusD;
+    float centreY = yPos + this->height - radiusD;
+    Vector2f *curve = gen_curve(centreX + width, centreY + width, M_PI + M_PI_2, radiusD);
+    for (int i = 0; i < pointCount; i++)
+        shadow.setPoint(index++, curve[i]);
+    delete[] curve;
+    pos = roundedRect.getPoint(0) + width;
+    shadow.setPoint(index++, pos);
+    pos = roundedRect.getPoint((int)(pointCount * 0.5)) + 0.f;
+    shadow.setPoint(index++, pos);
+    for (int i = 0; i < pointCount / 2; i++)
+        shadow.setPoint(index++, roundedRect.getPoint(pointCount / 2 + i));
+    curve = gen_curve(xPos + radiusB, yPos + radiusB, M_PI_2, radiusD);
+    for (int i = 0; i < pointCount; i++)
+        shadow.setPoint(index++, curve[i]);
+    delete[] curve;
+    for (int i = 0; i < pointCount / 2; i++)
+        shadow.setPoint(index++, roundedRect.getPoint(2 * pointCount + i));
+    set_shadow_color();
+    shadow.setOutlineThickness(1.f);
+    this->isShadowPresent = true;
+}
+
+void RoundedRectangle::set_shadow_color()
+{
+    if (isShadowPresent)
+    {
+        shadow.setFillColor(outlineColor);
+        shadow.setOutlineColor(outlineColor);
+    }
+}
+
+void RoundedRectangle::set_size(float width, float height)
+{
+    float factorX = width / originalWidth;
+    float factorY = height / originalHeight;
+    roundedRect.setScale(factorX, factorY);
+    this->width = width;
+    this->height = height;
+}
+
+void RoundedRectangle::set_thickness(float thickness)
+{
+    roundedRect.setOutlineThickness(thickness);
+    if (isShadowPresent)
+        shadow.setOutlineThickness(thickness);
 }
