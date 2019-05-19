@@ -37,7 +37,7 @@ void MabbleIntro::gen_icon_box()
     {
         baseY[i] = yOffset;
         cycle[i] = static_cast<int>(baseY[i] / OFFSET);
-        icons[i] = RoundedRectangle(xPos + xOffset, yPos + amplitude * sin(baseY[i]), iconWidth, iconHeight, iconRadius, iconRadius, iconRadius, iconRadius, 10);
+        icons[i] = RoundedRectangle(xPos + xOffset, yPos + amplitude * sin(baseY[i]), iconWidth, iconHeight, iconRadius, iconRadius, iconRadius, 0, 10);
         xOffset += iconWidth + gap;
         icons[i].set_fill_color(fgColor);
         icons[i].set_outline_color(bgColor);
