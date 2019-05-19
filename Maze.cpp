@@ -1,49 +1,96 @@
 #include "Maze.hpp"
-float xPos = 300;
-Maze::Maze(int height, int width)
+Maze::Maze(size_t columnLen)
 {
     srand(time(NULL));
-    this->width = width;
-    this->height = height;
-    this->currGen = new bool *[height];
-    this->display = new RoundedRectangle *[height];
-    for (int i = 0; i < height; i++)
-    {
-        currGen[i] = new bool[width];
-        display[i] = new RoundedRectangle[width];
-    }
-    this->isSeedGen = false;
-    int xPos = -40;
-    int yPos = 10;
-    int w = 40;
-    for (int i = 0; i < height; i++)
-    {
-        for (int j = 0; j < width; j++)
-        {
-            display[i][j] = RoundedRectangle(xPos + j * w, yPos + i * w, w, w, 10, 10, 10, 10, 7);
-            display[i][j].set_fill_color(currGen[i][j] ? Color::Green : Color::Red);
-            display[i][j].set_outline_color(currGen[i][j] ? Color::Green : Color::Red);
-        }
-    }
+    this->columnLen = columnLen & 1 == 0 ? columnLen + 1 : columnLen;
+    columns = new LinkedList();
+    displayColumn = new LinkedList();
+    this->xPos = -40;
+    this->yPos = 10;
+    this->width = 40;
 }
 
 void Maze::display_matrix(RenderWindow *window)
 {
-    for (int i = 0; i < this->height; i++)
-        for (int j = 0; j < this->width; j++)
+    for (Node *node = displayColumn->head; node != NULL; node = node->next)
+    {
+        RoundedRectangle *rec = static_cast<RoundedRectangle *>(node->val);
+        for (int i = 0; i < columnLen; i++)
+            rec[i].draw(window);
+    }
+}
+
+int Maze::get_height()
+{
+    return columnLen;
+}
+
+int Maze::get_width()
+{
+    return columns->count();
+}
+
+void Maze::gen_row()
+{
+    bool *column = new bool[columnLen];
+    bool *connectorColumn = new bool[columnLen];
+    for (int i = 0; i < columnLen; i += 2)
+    {
+        column[i] = true;
+        connectorColumn[i] = rand() % 2 == 0;
+    }
+    for (int i = 1; i < columnLen; i += 2){
+        column[i] = rand() % 2 == 0;
+        connectorColumn[i] = false;
+    }
+    columns->insert(static_cast<void *>(column));
+    columns->insert(static_cast<void *>(connectorColumn));
+    update_display();
+}
+
+bool **Maze::to_matrix(size_t *width, size_t *height)
+{
+    *width = columns->count();
+    *height = columnLen;
+    bool **matrix = new bool *[*height];
+    for (int i = 0; i < *height; i++)
+        matrix[i] = new bool[*width];
+    int j = 0;
+    for (Node *node = columns->head; node != NULL; node = node->next)
+    {
+        bool *column = static_cast<bool *>(node->val);
+        for (int i = 0; i < *height; i++)
+            matrix[i][j] = column[i];
+        j++;
+    }
+    return matrix;
+}
+
+void Maze::update_display()
+{
+    int width = columns->count();
+    RoundedRectangle *columnRect = new RoundedRectangle[columnLen];
+    Node *p = columns->get_parent(columns->tail);
+    for (int j = width - 2; j < width; j++)
+    {
+        columnRect = new RoundedRectangle[columnLen];
+        bool *column = static_cast<bool *>(p->val);
+        for (int i = 0; i < columnLen; i++)
         {
-            display[i][j].set_position(display[i][j].get_xPos() - 1, display[i][j].get_yPos());
-            display[i][j].set_fill_color(currGen[i][j] ? Color::Green : Color::Red);
-            display[i][j].set_outline_color(currGen[i][j] ? Color::Green : Color::Red);
-            display[i][j].draw(window);
+            columnRect[i] = RoundedRectangle(xPos + j * this->width, yPos + i * this->width, this->width, this->width, 10, 10, 10, 10, 7);
+            columnRect[i].set_fill_color(column[i] ? Color::Green : Color::Red);
+            columnRect[i].set_outline_color(column[i] ? Color::Green : Color::Red);
         }
+        p = p->next;
+        displayColumn->insert(static_cast<void *>(columnRect));
+    }
 }
 
 int main()
 {
-    Maze m(17, 100);
-    m.gen_seed();
-    int n = 1;
+    Maze m(17);
+    for(int i = 0; i < 17; i++)
+        m.gen_row();
     RenderWindow *window = new RenderWindow(VideoMode(700, 700), "Window", Style::Close);
     Event e;
     while (window->isOpen())
@@ -58,69 +105,7 @@ int main()
             }
         }
         window->clear(Color::Black);
-        m.sim_next_generation();
         m.display_matrix(window);
         window->display();
     }
-}
-
-int Maze::get_height()
-{
-    return height;
-}
-
-int Maze::get_width()
-{
-    return width;
-}
-
-void Maze::gen_seed()
-{
-    // if (!isSeedGen)
-    // {
-    //     int startAlive = rand() % (width * height);
-    //     printf("startAlive: %d\n", startAlive);
-    //     for (int i = 0; i < startAlive; i++)
-    //     {
-    //         int index = rand() % (width * height);
-    //         while (currGen[index / height][index % width])
-    //             index = rand() % (width * height);
-    //         currGen[index / height][index % width] = true;
-    //     }
-    //     isSeedGen = true;
-    // }
-    for (int i = 0; i < height; i++)
-        for (int j = 0; j < width; j++)
-            currGen[i][j] = rand() % 3 == 0;
-}
-
-void Maze::sim_next_generation()
-{
-    bool **nextGen = new bool *[height];
-    for (int i = 0; i < height; i++)
-        nextGen[i] = new bool[width];
-    int n = 0;
-    for (int i = 0; i < height; i++)
-    {
-        for (int j = 0; j < width; j++)
-        {
-            int neighbour = 0;
-            neighbour += i - 1 == -1 || j - 1 == -1 ? 0 : currGen[i - 1][j - 1] ? 1 : 0;
-            neighbour += i - 1 == -1 ? 0 : currGen[i - 1][j] ? 1 : 0;
-            neighbour += i - 1 == -1 || j + 1 == width ? 0 : currGen[i - 1][j + 1];
-            neighbour += j - 1 == -1 ? 0 : currGen[i][j - 1] ? 1 : 0;
-            neighbour += j + 1 == width ? 0 : currGen[i][j + 1] ? 1 : 0;
-            neighbour += i + 1 == height || j - 1 == -1 ? 0 : currGen[i + 1][j - 1] ? 1 : 0;
-            neighbour += i + 1 == height ? 0 : currGen[i + 1][j] ? 1 : 0;
-            neighbour += i + 1 == height || j + 1 == width ? 0 : currGen[i + 1][j + 1] ? 1 : 0;
-            nextGen[i][j] = currGen[i][j];
-            if (neighbour == 3)
-                nextGen[i][j] = true;
-            if (neighbour == 0 || neighbour > 5)
-                nextGen[i][j] = false;
-        }
-    }
-    bool **oldGen = currGen;
-    currGen = nextGen;
-    delete[] oldGen;
 }
