@@ -8,17 +8,22 @@
 class Maze
 {
 private:
+    size_t columnLen;
+    LinkedList *columns;
+    LinkedList *displayColumn;
+    int xPos;
+    int yPos;
     int width;
-    int height;
-    bool **currGen;
-    bool isSeedGen;
-    RoundedRectangle **display;
+
 public:
-    Maze(int width, int height);
-    void gen_seed();
-    void sim_next_generation();
+    Maze(size_t columnLen);
     void display_matrix(RenderWindow *window);
+    void gen_row();
+    bool **to_matrix(size_t *width, size_t *height);
     int get_width();
     int get_height();
+
+private:
+    void update_display();
 };
 #endif
