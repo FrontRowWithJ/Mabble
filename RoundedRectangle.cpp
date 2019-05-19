@@ -190,7 +190,7 @@ void RoundedRectangle::gen_shadow(float width)
     shadow.setPoint(index++, pos);
     for (int i = 0; i < pointCount / 2; i++)
         shadow.setPoint(index++, roundedRect.getPoint(pointCount / 2 + i));
-    curve = gen_curve(xPos + radiusB, yPos + radiusB, M_PI_2, radiusD);
+    curve = gen_curve(xPos + radiusB, yPos + radiusB, M_PI_2, radiusB);
     for (int i = 0; i < pointCount; i++)
         shadow.setPoint(index++, curve[i]);
     delete[] curve;
