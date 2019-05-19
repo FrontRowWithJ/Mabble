@@ -68,7 +68,6 @@ int main(int argc, char **argv)
         }
         p1->draw(window);
         p2->draw(window);
-        // tr.draw(window);
         b.draw(window);
         cb.draw(window);
         window->display();
