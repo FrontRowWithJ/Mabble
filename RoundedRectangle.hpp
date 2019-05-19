@@ -13,6 +13,11 @@
               c    
 */
 
+static Vector2f operator+(Vector2f a, float offset)
+{
+  return Vector2f(a.x + offset, a.y + offset);
+}
+
 class RoundedRectangle
 {
 private:
@@ -20,27 +25,18 @@ private:
   float yPos;
   float width;
   float height;
+  float originalWidth;
+  float originalHeight;
   float radiusA;
   float radiusB;
   float radiusC;
   float radiusD;
+  ConvexShape roundedRect;
   Color fillColor;
   Color outlineColor;
   int pointCount; //This only applies to the curved part of the rectangle
-  int numOfCoords;
-  //? These coordinates relate to the beginning and end points of the straight parts of the rectangle
-  Vertex aStart;
-  Vertex aEnd;
-  Vertex bStart;
-  Vertex bEnd;
-  Vertex cStart;
-  Vertex cEnd;
-  Vertex dStart;
-  Vertex dEnd;
-  vector<Vertex> roundedRect;
-  RectangleShape r1;
-  RectangleShape r2;
-  CircleShape *circles = new CircleShape[4];
+  ConvexShape shadow;
+  bool isShadowPresent;
 
 public:
   RoundedRectangle();
@@ -62,9 +58,13 @@ public:
   float get_width();
   float get_height();
   float set_position(float xPos, float yPos);
+  void gen_shadow(float width);
+  void set_size(float width, float height);
+  void set_thickness(float thickness);
+
 private:
   void gen_shape();
-  Vertex *gen_curve(double centreX, double centreY, double curveStart, double radius);
-  void copy_to_shape(Vertex *vertices);
+  Vector2f *gen_curve(double centreX, double centreY, double curveStart, double radius);
+  void set_shadow_color();
 };
 #endif
