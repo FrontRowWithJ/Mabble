@@ -120,7 +120,7 @@ Node *LinkedList::get_parent(Node *node)
     Node *n = head;
     for (; n->next != NULL && n->next != node; n = n->next)
         ;
-    return n;
+    return n == tail ? NULL : n;
 }
 
 int LinkedList::count()
@@ -267,6 +267,7 @@ void LinkedList::empty_list()
     }
     tail = NULL;
 }
+
 void *LinkedList::pop()
 {
     Node *h = head;
