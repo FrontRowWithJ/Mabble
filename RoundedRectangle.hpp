@@ -37,6 +37,7 @@ private:
   int pointCount; //This only applies to the curved part of the rectangle
   ConvexShape shadow;
   bool isShadowPresent;
+  float shadowWidth;
 
 public:
   RoundedRectangle();
@@ -66,5 +67,6 @@ private:
   void gen_shape();
   Vector2f *gen_curve(double centreX, double centreY, double curveStart, double radius);
   void set_shadow_color();
+  void set_radius(float centreX, float centreY, int quadrantPos, float radius);
 };
 #endif
