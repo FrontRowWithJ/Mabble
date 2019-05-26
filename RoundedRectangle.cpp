@@ -122,6 +122,8 @@ int RoundedRectangle::get_point_count()
 
 void RoundedRectangle::set_radiusA(float radiusA)
 {
+    if (this->radiusA == radiusA)
+        return;
     this->radiusA = radiusA;
     double centreX = xPos + width - radiusA;
     double centreY = yPos + radiusA;
@@ -130,6 +132,8 @@ void RoundedRectangle::set_radiusA(float radiusA)
 
 void RoundedRectangle::set_radiusB(float radiusB)
 {
+    if (this->radiusB == radiusB)
+        return;
     this->radiusB = radiusB;
     float centreX = xPos + radiusB;
     float centreY = yPos + radiusB;
@@ -138,6 +142,8 @@ void RoundedRectangle::set_radiusB(float radiusB)
 
 void RoundedRectangle::set_radiusC(float radiusC)
 {
+    if (this->radiusC == radiusC)
+        return;
     this->radiusC = radiusC;
     float centreX = xPos + radiusC;
     float centreY = yPos + height - radiusC;
@@ -146,6 +152,8 @@ void RoundedRectangle::set_radiusC(float radiusC)
 
 void RoundedRectangle::set_radiusD(float radiusD)
 {
+    if (this->radiusD == radiusD)
+        return;
     this->radiusD = radiusD;
     float centreX = xPos + width - radiusD;
     float centreY = yPos + height - radiusD;
