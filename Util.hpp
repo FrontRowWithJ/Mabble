@@ -65,5 +65,14 @@ typedef struct BoardPosition
     Color((C >> 16) & 0xFF, (C >> 8) & 0xFF, C & 0xFF)
 #endif
 
+#ifndef SET_XPOS
+#define SET_XPOS(X, Y) \
+    lb.left - X - (Y - lb.width) / 2.f
+#endif
+
+#ifndef SET_YPOS
+#define SET_YPOS(X, Y) \
+    lb.top - X - (Y - lb.height) / 2.f
+#endif
 typedef unsigned char byte_t;
 #endif
