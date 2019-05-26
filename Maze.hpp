@@ -3,6 +3,7 @@
 
 #include "Util.hpp"
 #include "RoundedRectangle.hpp"
+#include "MazeTile.hpp"
 #include <random>
 
 class Maze
@@ -23,17 +24,16 @@ private:
     Node *valPos;
     bool oof = false;
     bool *nextColumn;
-
+    const char *symbol;
 public:
     Maze(size_t columnLen, size_t screenWidth, size_t screenHeight);
     void display_matrix(RenderWindow *window);
-    bool **to_matrix(size_t *width, size_t *height);
     int get_width();
     int get_height();
 
 private:
     void update_display();
-    void gen_row();
+    void gen_column();
     void update_tile_corners();
     static void delete_rect(void *val);
     static void delete_bool(void *val);
