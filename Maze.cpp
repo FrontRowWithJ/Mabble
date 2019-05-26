@@ -1,4 +1,6 @@
 #include "Maze.hpp"
+int len;
+Font f;
 Maze::Maze(size_t columnLen, size_t screenWidth, size_t screenHeight)
 {
     srand(time(NULL));
@@ -11,33 +13,35 @@ Maze::Maze(size_t columnLen, size_t screenWidth, size_t screenHeight)
     this->yPos = 10;
     this->width = 30;
     this->panSpeed = .1;
-    this->startPos = 0;
+    this->startPos = -xPos;
     this->displayPos = NULL;
     this->valPos = NULL;
-    int numOfVisibleColumns = screenWidth / width + 1;
+    int numOfVisibleColumns = screenWidth / width;
     int n = (numOfVisibleColumns / 2) * width;
     this->threshold = n - screenWidth;
-    this->nextColumn = new bool[columnLen];
-    for (int i = 0; i < numOfVisibleColumns / 2; i++)
-        gen_row();
+    this->nextColumn = new bool[this->columnLen];
+    len = this->columnLen;
+    this->symbol = "0123456789-+=/*\0";
+    for (int i = 0; i < numOfVisibleColumns / 2 + 1; i++)
+        gen_column();
 }
 
 void Maze::display_matrix(RenderWindow *window)
 {
     for (Node *node = displayColumn->head; node != NULL; node = node->next)
     {
-        RoundedRectangle *rec = static_cast<RoundedRectangle *>(node->val);
+        MazeTile *rec = static_cast<MazeTile *>(node->val);
         for (int i = 0; i < columnLen; i++)
         {
             rec[i].draw(window);
-            rec[i].set_position(rec[i].get_xPos() - panSpeed, rec[i].get_yPos());
+            rec[i].set_xPos(rec[i].get_xPos() - panSpeed);
         }
     }
     threshold += panSpeed;
     startPos += panSpeed;
     if (threshold >= 2 * width)
     {
-        gen_row();
+        gen_column();
         threshold = 0;
     }
     if (startPos >= width)
@@ -58,7 +62,7 @@ int Maze::get_width()
     return columns->count();
 }
 
-void Maze::gen_row()
+void Maze::gen_column()
 {
     bool *column = new bool[columnLen];
     bool *connectorColumn = new bool[columnLen];
@@ -82,28 +86,10 @@ void Maze::gen_row()
     oof = true;
 }
 
-bool **Maze::to_matrix(size_t *width, size_t *height)
-{
-    *width = columns->count();
-    *height = columnLen;
-    bool **matrix = new bool *[*height];
-    for (int i = 0; i < *height; i++)
-        matrix[i] = new bool[*width];
-    int j = 0;
-    for (Node *node = columns->head; node != NULL; node = node->next)
-    {
-        bool *column = static_cast<bool *>(node->val);
-        for (int i = 0; i < *height; i++)
-            matrix[i][j] = column[i];
-        j++;
-    }
-    return matrix;
-}
-
 void Maze::update_display()
 {
     int width = columns->count();
-    RoundedRectangle *columnRect = new RoundedRectangle[columnLen];
+    MazeTile *columnRect = new MazeTile[columnLen];
     Node *p = columns->get_parent(columns->tail);
     Node *t = displayColumn->tail;
     Node *valNode = columns->get_parent(p);
@@ -112,21 +98,26 @@ void Maze::update_display()
         leftColumn = static_cast<bool *>(valNode->val);
     for (int j = width - 2; j < width; j++)
     {
-        columnRect = new RoundedRectangle[columnLen];
+        columnRect = new MazeTile[columnLen];
         bool *column = static_cast<bool *>(p->val);
-        RoundedRectangle *c;
+        MazeTile *c;
         bool *rightVal;
         if (j == width - 2)
             rightVal = static_cast<bool *>(columns->tail->val);
         else
             rightVal = nextColumn;
         if (t != NULL)
-            c = static_cast<RoundedRectangle *>(t->val);
+        {
+            c = static_cast<MazeTile *>(t->val);
+        }
         for (int i = 0; i < columnLen; i++)
         {
-            columnRect[i] = RoundedRectangle(t == NULL ? xPos : c[i].get_xPos() + this->width, yPos + i * this->width, this->width, this->width, 10, 10, 10, 10, 7);
-            columnRect[i].set_fill_color(column[i] ? Color::Green : Color::Red);
-            columnRect[i].set_outline_color(column[i] ? Color::Green : Color::Red);
+            columnRect[i] = MazeTile(t == NULL ? xPos : c[i].get_xPos() + this->width, yPos + i * this->width, this->width, 10, f, symbol[rand() % strlen(symbol)], column[i]);
+            if (!column[i])
+            {
+                columnRect[i].set_fill_color(Color::White);
+                columnRect[i].set_outline_color(Color::White);
+            }
             if (i != 0 && column[i - 1] && column[i])
             {
                 columnRect[i].set_radiusA(0);
@@ -169,7 +160,7 @@ void Maze::update_tile_corners()
     }
     for (int n = 0; n < 2; n++)
     {
-        RoundedRectangle *rects = static_cast<RoundedRectangle *>(displayPos->val);
+        MazeTile *rects = static_cast<MazeTile *>(displayPos->val);
         bool *vals = static_cast<bool *>(valPos->val);
 
         // Checking left side
@@ -218,6 +209,7 @@ void Maze::update_tile_corners()
 int main()
 {
     Color beige = COLOR(0x632b6c);
+    f.loadFromFile("run.ttf");
     Maze m(17, 700, 700);
     RenderWindow *window = new RenderWindow(VideoMode(700, 700), "Window", Style::Close);
     Event e;
@@ -240,7 +232,9 @@ int main()
 
 void Maze::delete_rect(void *val)
 {
-    RoundedRectangle *rect = static_cast<RoundedRectangle *>(val);
+    MazeTile *rect = static_cast<MazeTile *>(val);
+    // for (int i = 0; i < len; i++)
+    //     rect[i].del();
     delete[] rect;
 }
 
