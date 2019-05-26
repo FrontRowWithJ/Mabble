@@ -29,7 +29,7 @@ public:
   void insert(void *val);
   bool contains(void *val, function<int(void *, void *)> compare);
   bool delete_node(void *val, function<int(void *, void *)> compare);
-  bool delete_node(Node *node);
+  bool delete_node(Node *node, function<void(void *)> del);
   Node *remove(void *val, function<int(void *, void *)> compare);
   Node *find(void *val, function<int(void *, void *)> compare);
   Node *find(Node *node);
