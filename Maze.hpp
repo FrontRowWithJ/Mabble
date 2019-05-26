@@ -13,14 +13,17 @@ private:
     size_t screenHeight;
     LinkedList *columns;
     LinkedList *displayColumn;
-    int xPos;
-    int yPos;
-    int width;
+    float xPos;
+    float yPos;
+    float width;
     float panSpeed;
     float threshold;
     float startPos;
     Node * displayPos;
     Node *valPos;
+    bool oof = false;
+    bool *nextColumn;
+
 public:
     Maze(size_t columnLen, size_t screenWidth, size_t screenHeight);
     void display_matrix(RenderWindow *window);
@@ -32,5 +35,7 @@ private:
     void update_display();
     void gen_row();
     void update_tile_corners();
+    static void delete_rect(void *val);
+    static void delete_bool(void *val);
 };
 #endif
