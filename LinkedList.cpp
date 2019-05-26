@@ -60,7 +60,7 @@ bool LinkedList::delete_node(void *val, function<int(void *, void *)> compare)
 }
 
 //only use this function if you can guaruntee that this node exists in the linked list
-bool LinkedList::delete_node(Node *node)
+bool LinkedList::delete_node(Node *node, function<void(void *)> delete_val)
 {
     if (head == NULL)
         return false;
@@ -69,6 +69,7 @@ bool LinkedList::delete_node(Node *node)
     if (node == head)
     {
         head = head->next;
+        delete_val(node->val);
         delete node;
     }
     else if (node == tail)
@@ -76,12 +77,14 @@ bool LinkedList::delete_node(Node *node)
         Node *parent = get_parent(node);
         parent->next = NULL;
         tail = parent;
+        delete_val(node->val);
         delete node;
     }
     else
     {
         Node *parent = get_parent(node);
         parent->next = node->next;
+        delete_val(node->val);
         delete node;
     }
     return true;
