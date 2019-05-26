@@ -17,6 +17,7 @@ Maze::Maze(size_t columnLen, size_t screenWidth, size_t screenHeight)
     int numOfVisibleColumns = screenWidth / width + 1;
     int n = (numOfVisibleColumns / 2) * width;
     this->threshold = n - screenWidth;
+    this->nextColumn = new bool[columnLen];
     for (int i = 0; i < numOfVisibleColumns / 2; i++)
         gen_row();
 }
@@ -41,8 +42,8 @@ void Maze::display_matrix(RenderWindow *window)
     }
     if (startPos >= width)
     {
-        displayColumn->delete_node(displayColumn->head);
-        columns->delete_node(columns->head);
+        displayColumn->delete_node(displayColumn->head, delete_rect);
+        columns->delete_node(columns->head, delete_bool);
         startPos = 0;
     }
 }
@@ -63,20 +64,22 @@ void Maze::gen_row()
     bool *connectorColumn = new bool[columnLen];
     for (int i = 0; i < columnLen; i += 2)
     {
-        column[i] = true;
+        column[i] = oof ? nextColumn[i] : true;
         connectorColumn[i] = rand() % 2 == 0;
     }
     for (int i = 1; i < columnLen; i += 2)
     {
-        column[i] = rand() % 2 == 0;
+        column[i] = oof ? nextColumn[i] : rand() % 2 == 0;
         connectorColumn[i] = false;
     }
+    for (int i = 0; i < columnLen; i += 2)
+        nextColumn[i] = true;
+    for (int i = 1; i < columnLen; i += 2)
+        nextColumn[i] = rand() % 2 == 0;
     columns->insert(static_cast<void *>(column));
     columns->insert(static_cast<void *>(connectorColumn));
     update_display();
-    if (displayPos != NULL)
-        update_tile_corners();
-    update_tile_corners();
+    oof = true;
 }
 
 bool **Maze::to_matrix(size_t *width, size_t *height)
@@ -103,75 +106,113 @@ void Maze::update_display()
     RoundedRectangle *columnRect = new RoundedRectangle[columnLen];
     Node *p = columns->get_parent(columns->tail);
     Node *t = displayColumn->tail;
+    Node *valNode = columns->get_parent(p);
+    bool *leftColumn = NULL;
+    if (valNode != NULL)
+        leftColumn = static_cast<bool *>(valNode->val);
     for (int j = width - 2; j < width; j++)
     {
         columnRect = new RoundedRectangle[columnLen];
         bool *column = static_cast<bool *>(p->val);
+        RoundedRectangle *c;
+        bool *rightVal;
+        if (j == width - 2)
+            rightVal = static_cast<bool *>(columns->tail->val);
+        else
+            rightVal = nextColumn;
+        if (t != NULL)
+            c = static_cast<RoundedRectangle *>(t->val);
         for (int i = 0; i < columnLen; i++)
         {
-            int x;
-            if (t == NULL)
-                x = xPos + j * this->width;
-            else
-            {
-                RoundedRectangle *c = static_cast<RoundedRectangle *>(t->val);
-                x = c->get_xPos() + this->width;
-            }
-            columnRect[i] = RoundedRectangle(x, yPos + i * this->width, this->width, this->width, 10, 10, 10, 10, 7);
+            columnRect[i] = RoundedRectangle(t == NULL ? xPos : c[i].get_xPos() + this->width, yPos + i * this->width, this->width, this->width, 10, 10, 10, 10, 7);
             columnRect[i].set_fill_color(column[i] ? Color::Green : Color::Red);
             columnRect[i].set_outline_color(column[i] ? Color::Green : Color::Red);
+            if (i != 0 && column[i - 1] && column[i])
+            {
+                columnRect[i].set_radiusA(0);
+                columnRect[i].set_radiusB(0);
+            }
+            if (i != columnLen - 1 && column[i + 1] && column[i])
+            {
+                columnRect[i].set_radiusC(0);
+                columnRect[i].set_radiusD(0);
+            }
+            if (leftColumn != NULL && leftColumn[i] && column[i])
+            {
+                columnRect[i].set_radiusB(0);
+                columnRect[i].set_radiusC(0);
+            }
+            if (rightVal[i] && column[i])
+            {
+                columnRect[i].set_radiusA(0);
+                columnRect[i].set_radiusD(0);
+            }
         }
         p = p->next;
         displayColumn->insert(static_cast<void *>(columnRect));
         t = displayColumn->tail;
+        if (valNode == NULL)
+            valNode = columns->head;
+        else
+            valNode = valNode->next;
+        leftColumn = static_cast<bool *>(valNode->val);
     }
 }
 
 void Maze::update_tile_corners()
 {
-    displayPos = displayPos == NULL ? displayColumn->head : displayPos->next;
-    valPos = valPos == NULL ? columns->head : valPos->next;
-    RoundedRectangle *rects = static_cast<RoundedRectangle *>(displayPos->val);
-    bool *vals = static_cast<bool *>(valPos->val);
-
-    // Checking left side
-    Node *leftColumnVal = columns->get_parent(valPos);
-    if (leftColumnVal != NULL)
+    if (oof)
     {
-        bool *leftVals = static_cast<bool *>(leftColumnVal->val);
-        for (int i = 0; i < columnLen; i++)
-            if (leftVals[i] && vals[i])
-            {
-                rects[i].set_radiusB(0);
-                rects[i].set_radiusC(0);
-            }
+        displayPos = displayColumn->head;
+        valPos = columns->head;
+        oof = false;
     }
-    // Checking right side
-    Node *rightColumnVal = valPos->next;
-    if (rightColumnVal != NULL)
+    for (int n = 0; n < 2; n++)
     {
-        bool *rightVals = static_cast<bool *>(rightColumnVal->val);
-        for (int i = 0; i < columnLen; i++)
-            if (rightVals[i] && vals[i])
+        RoundedRectangle *rects = static_cast<RoundedRectangle *>(displayPos->val);
+        bool *vals = static_cast<bool *>(valPos->val);
+
+        // Checking left side
+        Node *leftColumnVal = columns->get_parent(valPos);
+        if (leftColumnVal != NULL)
+        {
+            bool *leftVals = static_cast<bool *>(leftColumnVal->val);
+            for (int i = 0; i < columnLen; i++)
+                if (leftVals[i] && vals[i])
+                {
+                    rects[i].set_radiusB(0);
+                    rects[i].set_radiusC(0);
+                }
+        }
+        // Checking right side
+        Node *rightColumnVal = valPos->next;
+        if (rightColumnVal != NULL)
+        {
+            bool *rightVals = static_cast<bool *>(rightColumnVal->val);
+            for (int i = 0; i < columnLen; i++)
+                if (rightVals[i] && vals[i])
+                {
+                    rects[i].set_radiusA(0);
+                    rects[i].set_radiusD(0);
+                }
+        }
+        // Checking top
+        for (int i = 1; i < columnLen; i++)
+            if (vals[i - 1] && vals[i])
             {
                 rects[i].set_radiusA(0);
+                rects[i].set_radiusB(0);
+            }
+        // Checking bottom
+        for (int i = 0; i < columnLen - 1; i++)
+            if (vals[i + 1] && vals[i])
+            {
+                rects[i].set_radiusC(0);
                 rects[i].set_radiusD(0);
             }
+        displayPos = displayPos->next;
+        valPos = valPos->next;
     }
-    // Checking top
-    for (int i = 1; i < columnLen; i++)
-        if (vals[i - 1] && vals[i])
-        {
-            rects[i].set_radiusA(0);
-            rects[i].set_radiusB(0);
-        }
-    // Checking bottom
-    for (int i = 0; i < columnLen - 1; i++)
-        if (vals[i + 1] && vals[i])
-        {
-            rects[i].set_radiusC(0);
-            rects[i].set_radiusD(0);
-        }
 }
 
 int main()
@@ -195,4 +236,16 @@ int main()
         m.display_matrix(window);
         window->display();
     }
+}
+
+void Maze::delete_rect(void *val)
+{
+    RoundedRectangle *rect = static_cast<RoundedRectangle *>(val);
+    delete[] rect;
+}
+
+void Maze::delete_bool(void *val)
+{
+    bool *b = static_cast<bool *>(val);
+    delete[] b;
 }
