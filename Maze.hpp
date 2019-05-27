@@ -20,13 +20,14 @@ private:
     float panSpeed;
     float threshold;
     float startPos;
+    Font f;
     Node * displayPos;
     Node *valPos;
     bool oof = false;
     bool *nextColumn;
     const char *symbol;
 public:
-    Maze(size_t columnLen, size_t screenWidth, size_t screenHeight);
+    Maze(size_t columnLen, size_t screenWidth, size_t screenHeight, Font f);
     void display_matrix(RenderWindow *window);
     int get_width();
     int get_height();
