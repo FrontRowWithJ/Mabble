@@ -60,9 +60,25 @@ typedef struct BoardPosition
 #define FAILURE 0
 #endif
 
-#ifndef COLOR
-#define COLOR(C) \
+#ifndef COLOR0
+#define COLOR0(C) \
     Color((C >> 16) & 0xFF, (C >> 8) & 0xFF, C & 0xFF)
+#endif
+
+#ifndef COLOR1
+#define COLOR1(C, A) \
+    Color((C >> 16) & 0xFF, (C >> 8) & 0xFF, C & 0xFF, A % 255)
+#endif
+
+#ifndef GET_MACRO
+#define GET_MACRO(_1, _2, NAME, ...) \
+    NAME
+#endif
+
+#ifndef COLOR
+#define COLOR(...)                         \
+    GET_MACRO(__VA_ARGS__, COLOR1, COLOR0) \
+    (__VA_ARGS__)
 #endif
 
 #ifndef SET_XPOS
