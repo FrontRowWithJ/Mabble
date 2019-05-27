@@ -15,6 +15,7 @@ private:
     Color equalColor;
     Color bgColor;
     bool isTextPresent;
+
 public:
     MazeTile();
     MazeTile(float xPos, float yPos, float width, float radius, Font font, char value, bool isTextPresent);
@@ -31,8 +32,9 @@ public:
     void set_radiusC(float radiusC);
     void set_radiusD(float radiusD);
     void del();
-private:
     void gen_text();
+
+private:
 };
 
 #endif
