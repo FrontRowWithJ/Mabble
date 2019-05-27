@@ -1,7 +1,5 @@
 #include "Maze.hpp"
-int len;
-Font f;
-Maze::Maze(size_t columnLen, size_t screenWidth, size_t screenHeight)
+Maze::Maze(size_t columnLen, size_t screenWidth, size_t screenHeight, Font f)
 {
     srand(time(NULL));
     this->screenWidth = screenWidth;
@@ -9,18 +7,18 @@ Maze::Maze(size_t columnLen, size_t screenWidth, size_t screenHeight)
     this->columnLen = columnLen & 1 == 0 ? columnLen + 1 : columnLen;
     columns = new LinkedList();
     displayColumn = new LinkedList();
-    this->xPos = 10;
-    this->yPos = 10;
+    this->xPos = 0;
+    this->yPos = 0;
     this->width = 30;
-    this->panSpeed = .1;
+    this->panSpeed = .3;
     this->startPos = -xPos;
     this->displayPos = NULL;
     this->valPos = NULL;
+    this->f = f;
     int numOfVisibleColumns = screenWidth / width;
     int n = (numOfVisibleColumns / 2) * width;
     this->threshold = n - screenWidth;
     this->nextColumn = new bool[this->columnLen];
-    len = this->columnLen;
     this->symbol = "0123456789-+=/*\0";
     for (int i = 0; i < numOfVisibleColumns / 2 + 1; i++)
         gen_column();
@@ -113,11 +111,8 @@ void Maze::update_display()
         for (int i = 0; i < columnLen; i++)
         {
             columnRect[i] = MazeTile(t == NULL ? xPos : c[i].get_xPos() + this->width, yPos + i * this->width, this->width, 10, f, symbol[rand() % strlen(symbol)], column[i]);
-            if (!column[i])
-            {
-                columnRect[i].set_fill_color(Color::White);
-                columnRect[i].set_outline_color(Color::White);
-            }
+            if(column[i])
+                columnRect[i].gen_text();
             if (i != 0 && column[i - 1] && column[i])
             {
                 columnRect[i].set_radiusA(0);
@@ -162,7 +157,6 @@ void Maze::update_tile_corners()
     {
         MazeTile *rects = static_cast<MazeTile *>(displayPos->val);
         bool *vals = static_cast<bool *>(valPos->val);
-
         // Checking left side
         Node *leftColumnVal = columns->get_parent(valPos);
         if (leftColumnVal != NULL)
@@ -206,35 +200,32 @@ void Maze::update_tile_corners()
     }
 }
 
-int main()
-{
-    Color beige = COLOR(0x632b6c);
-    f.loadFromFile("run.ttf");
-    Maze m(17, 700, 700);
-    RenderWindow *window = new RenderWindow(VideoMode(700, 700), "Window", Style::Close);
-    Event e;
-    while (window->isOpen())
-    {
-        while (window->pollEvent(e))
-        {
-            switch (e.type)
-            {
-            case Event::Closed:
-                window->close();
-                break;
-            }
-        }
-        window->clear(beige);
-        m.display_matrix(window);
-        window->display();
-    }
-}
+// int main()
+// {
+//     Color beige = COLOR(0x632b6c);
+//     RenderWindow *window = new RenderWindow(VideoMode(700, 700), "Window", Style::Close);
+//     Maze m((700 + 30 - 1) / 30, 700, 700);
+//     Event e;
+//     while (window->isOpen())
+//     {
+//         while (window->pollEvent(e))
+//         {
+//             switch (e.type)
+//             {
+//             case Event::Closed:
+//                 window->close();
+//                 break;
+//             }
+//         }
+//         window->clear(Color::Black);
+//         m.display_matrix(window);
+//         window->display();
+//     }
+// }
 
 void Maze::delete_rect(void *val)
 {
     MazeTile *rect = static_cast<MazeTile *>(val);
-    // for (int i = 0; i < len; i++)
-    //     rect[i].del();
     delete[] rect;
 }
 
