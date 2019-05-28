@@ -1,4 +1,8 @@
 #include "Maze.hpp"
+
+Maze::Maze()
+{
+}
 Maze::Maze(size_t columnLen, size_t screenWidth, size_t screenHeight, Font f)
 {
     srand(time(NULL));
@@ -10,7 +14,7 @@ Maze::Maze(size_t columnLen, size_t screenWidth, size_t screenHeight, Font f)
     this->xPos = 0;
     this->yPos = 0;
     this->width = 30;
-    this->panSpeed = .3;
+    this->panSpeed = 1;
     this->startPos = -xPos;
     this->displayPos = NULL;
     this->valPos = NULL;
@@ -111,27 +115,27 @@ void Maze::update_display()
         for (int i = 0; i < columnLen; i++)
         {
             columnRect[i] = MazeTile(t == NULL ? xPos : c[i].get_xPos() + this->width, yPos + i * this->width, this->width, 10, f, symbol[rand() % strlen(symbol)], column[i]);
-            if(column[i])
+            if (column[i])
                 columnRect[i].gen_text();
             if (i != 0 && column[i - 1] && column[i])
             {
-                columnRect[i].set_radiusA(0);
-                columnRect[i].set_radiusB(0);
+                columnRect[i].set_radiusA();
+                columnRect[i].set_radiusB();
             }
             if (i != columnLen - 1 && column[i + 1] && column[i])
             {
-                columnRect[i].set_radiusC(0);
-                columnRect[i].set_radiusD(0);
+                columnRect[i].set_radiusC();
+                columnRect[i].set_radiusD();
             }
             if (leftColumn != NULL && leftColumn[i] && column[i])
             {
-                columnRect[i].set_radiusB(0);
-                columnRect[i].set_radiusC(0);
+                columnRect[i].set_radiusB();
+                columnRect[i].set_radiusC();
             }
             if (rightVal[i] && column[i])
             {
-                columnRect[i].set_radiusA(0);
-                columnRect[i].set_radiusD(0);
+                columnRect[i].set_radiusA();
+                columnRect[i].set_radiusD();
             }
         }
         p = p->next;
@@ -165,8 +169,8 @@ void Maze::update_tile_corners()
             for (int i = 0; i < columnLen; i++)
                 if (leftVals[i] && vals[i])
                 {
-                    rects[i].set_radiusB(0);
-                    rects[i].set_radiusC(0);
+                    rects[i].set_radiusB();
+                    rects[i].set_radiusC();
                 }
         }
         // Checking right side
@@ -177,23 +181,23 @@ void Maze::update_tile_corners()
             for (int i = 0; i < columnLen; i++)
                 if (rightVals[i] && vals[i])
                 {
-                    rects[i].set_radiusA(0);
-                    rects[i].set_radiusD(0);
+                    rects[i].set_radiusA();
+                    rects[i].set_radiusD();
                 }
         }
         // Checking top
         for (int i = 1; i < columnLen; i++)
             if (vals[i - 1] && vals[i])
             {
-                rects[i].set_radiusA(0);
-                rects[i].set_radiusB(0);
+                rects[i].set_radiusA();
+                rects[i].set_radiusB();
             }
         // Checking bottom
         for (int i = 0; i < columnLen - 1; i++)
             if (vals[i + 1] && vals[i])
             {
-                rects[i].set_radiusC(0);
-                rects[i].set_radiusD(0);
+                rects[i].set_radiusC();
+                rects[i].set_radiusD();
             }
         displayPos = displayPos->next;
         valPos = valPos->next;
