@@ -4,8 +4,9 @@
 #include "RoundedRectangle.hpp"
 
 #ifndef OFFSET_DIVISOR
-#define OFFSET_DIVISOR 10000
+#define OFFSET_DIVISOR 2000
 #endif
+
 #ifndef OFFSET
 #define OFFSET (2 * M_PI / OFFSET_DIVISOR)
 #endif
@@ -63,6 +64,7 @@ private:
   float sbYPos;
 
 public:
+  MabbleIntro();
   MabbleIntro(float xPos, float yPos, float gap, float iconWidth, float iconHeight, float iconRadius, Color bgColor, Color textColor, Font font);
   void draw(RenderWindow *window);
   void fade(bool isFadingIn);
