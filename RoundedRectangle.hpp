@@ -31,6 +31,10 @@ private:
   float radiusB;
   float radiusC;
   float radiusD;
+  bool isRadiusAZero = false;
+  bool isRadiusBZero = false;
+  bool isRadiusCZero = false;
+  bool isRadiusDZero = false;
   ConvexShape roundedRect;
   Color fillColor;
   Color outlineColor;
@@ -54,6 +58,10 @@ public:
   void set_radiusB(float radiusB);
   void set_radiusC(float radiusC);
   void set_radiusD(float radiusD);
+  void set_radiusA_to_zero();
+  void set_radiusB_to_zero();
+  void set_radiusC_to_zero();
+  void set_radiusD_to_zero();
   float get_xPos();
   float get_yPos();
   float get_width();
