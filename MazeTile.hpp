@@ -6,7 +6,7 @@
 class MazeTile
 {
 private:
-    RoundedRectangle *bg;
+    RoundedRectangle bg;
     Text text;
     char value;
     Font font;
@@ -27,11 +27,10 @@ public:
     float get_yPos();
     void set_fill_color(Color bgColor);
     void set_outline_color(Color outlineColor);
-    void set_radiusA(float radiusA);
-    void set_radiusB(float radiusB);
-    void set_radiusC(float radiusC);
-    void set_radiusD(float radiusD);
-    void del();
+    void set_radiusA();
+    void set_radiusB();
+    void set_radiusC();
+    void set_radiusD();
     void gen_text();
 
 private:
