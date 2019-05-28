@@ -52,21 +52,21 @@ void RoundedRectangle::gen_shape()
     Vector2f *vertices = gen_curve(centreX, centreY, 0, radiusA);
     for (int i = 0; i < pointCount; index++, i++)
         roundedRect.setPoint(index, vertices[i]);
-
+    delete[] vertices;
     // second curve
     centreX = xPos + radiusB;
     centreY = yPos + radiusB;
     vertices = gen_curve(centreX, centreY, M_PI_2, radiusB);
     for (int i = 0; i < pointCount; index++, i++)
         roundedRect.setPoint(index, vertices[i]);
-
+    delete[] vertices;
     //third curve
     centreX = xPos + radiusC;
     centreY = yPos + height - radiusC;
     vertices = gen_curve(centreX, centreY, M_PI, radiusC);
     for (int i = 0; i < pointCount; index++, i++)
         roundedRect.setPoint(index, vertices[i]);
-
+    delete[] vertices;
     //fourth curve
     centreX = xPos + width - radiusD;
     centreY = yPos + height - radiusD;
@@ -74,6 +74,7 @@ void RoundedRectangle::gen_shape()
     for (int i = 0; i < pointCount; index++, i++)
         roundedRect.setPoint(index, vertices[i]);
     roundedRect.setOutlineThickness(1.f);
+    delete[] vertices;
 }
 
 Vector2f *RoundedRectangle::gen_curve(double centreX, double centreY, double start, double radius)
@@ -255,4 +256,96 @@ void RoundedRectangle::set_thickness(float thickness)
     roundedRect.setOutlineThickness(thickness);
     if (isShadowPresent)
         shadow.setOutlineThickness(thickness);
+}
+
+void RoundedRectangle::set_radiusA_to_zero()
+{
+    if (isRadiusAZero)
+        return;
+    isRadiusAZero = true;
+    this->radiusA = 0;
+    ConvexShape newShape(roundedRect.getPointCount() - (pointCount - 1));
+    newShape.setFillColor(roundedRect.getFillColor());
+    newShape.setOrigin(roundedRect.getOrigin());
+    newShape.setPosition(roundedRect.getPosition());
+    newShape.setOutlineThickness(roundedRect.getOutlineThickness());
+    newShape.setPoint(0, Vector2f(xPos + width, yPos));
+    for (int i = pointCount; i < roundedRect.getPointCount(); i++)
+        newShape.setPoint(i - (pointCount - 1), roundedRect.getPoint(i));
+    roundedRect = newShape;
+}
+
+void RoundedRectangle::set_radiusB_to_zero()
+{
+    if (isRadiusBZero)
+        return;
+    isRadiusBZero = true;
+    this->radiusB = 0;
+    ConvexShape newShape(roundedRect.getPointCount() - (pointCount - 1));
+    newShape.setFillColor(roundedRect.getFillColor());
+    newShape.setOrigin(roundedRect.getOrigin());
+    newShape.setPosition(roundedRect.getPosition());
+    newShape.setOutlineThickness(roundedRect.getOutlineThickness());
+    newShape.setPoint(isRadiusAZero ? 1 : pointCount, Vector2f(xPos, yPos));
+    if (!isRadiusAZero)
+    {
+        for (int i = 0; i < pointCount; i++)
+            newShape.setPoint(i, roundedRect.getPoint(i));
+        for (int i = 2 * pointCount; i < roundedRect.getPointCount(); i++)
+            newShape.setPoint(i - (pointCount - 1), roundedRect.getPoint(i));
+    }
+    else
+    {
+        newShape.setPoint(0, roundedRect.getPoint(0));
+        for (int i = pointCount + 1; i < roundedRect.getPointCount(); i++)
+            newShape.setPoint(i - (pointCount - 1), roundedRect.getPoint(i));
+    }
+    roundedRect = newShape;
+}
+
+void RoundedRectangle::set_radiusC_to_zero()
+{
+    if (isRadiusCZero)
+        return;
+    isRadiusCZero = true;
+    this->radiusC = 0;
+    ConvexShape newShape(roundedRect.getPointCount() - (pointCount - 1));
+    newShape.setFillColor(roundedRect.getFillColor());
+    newShape.setOrigin(roundedRect.getOrigin());
+    newShape.setPosition(roundedRect.getPosition());
+    newShape.setOutlineThickness(roundedRect.getOutlineThickness());
+    int index = 0;
+    if (isRadiusAZero)
+        newShape.setPoint(index++, roundedRect.getPoint(0));
+    else
+        for (; index < pointCount; index++)
+            newShape.setPoint(index, roundedRect.getPoint(index));
+    int n = index;
+    if (isRadiusBZero)
+        newShape.setPoint(index++, roundedRect.getPoint(n));
+    else
+        for (; index < n + pointCount; index++)
+            newShape.setPoint(index, roundedRect.getPoint(index));
+    newShape.setPoint(index, Vector2f(xPos, yPos + height));
+    index += pointCount;
+    for (int i = index; i < roundedRect.getPointCount(); i++)
+        newShape.setPoint(i - (pointCount - 1), roundedRect.getPoint(i));
+    roundedRect = newShape;
+}
+
+void RoundedRectangle::set_radiusD_to_zero()
+{
+    if (isRadiusDZero)
+        return;
+    isRadiusDZero = true;
+    this->radiusD = 0;
+    ConvexShape newShape(roundedRect.getPointCount() - (pointCount - 1));
+    newShape.setFillColor(roundedRect.getFillColor());
+    newShape.setOrigin(roundedRect.getOrigin());
+    newShape.setPosition(roundedRect.getPosition());
+    newShape.setOutlineThickness(roundedRect.getOutlineThickness());
+    for (int i = 0; i < roundedRect.getPointCount() - pointCount; i++)
+        newShape.setPoint(i, roundedRect.getPoint(i));
+    newShape.setPoint(newShape.getPointCount() - 1, Vector2f(xPos + width, yPos + height));
+    roundedRect = newShape;
 }
