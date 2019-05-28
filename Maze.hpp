@@ -27,6 +27,7 @@ private:
     bool *nextColumn;
     const char *symbol;
 public:
+    Maze();
     Maze(size_t columnLen, size_t screenWidth, size_t screenHeight, Font f);
     void display_matrix(RenderWindow *window);
     int get_width();
