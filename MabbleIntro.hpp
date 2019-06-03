@@ -4,15 +4,21 @@
 #include "RoundedRectangle.hpp"
 
 #ifndef OFFSET_DIVISOR
-#define OFFSET_DIVISOR 2000
+#define OFFSET_DIVISOR 5000
 #endif
 
 #ifndef OFFSET
 #define OFFSET (2 * M_PI / OFFSET_DIVISOR)
 #endif
 
+#ifndef LOWEST
 #define LOWEST ((M_PI + M_PI_2) / OFFSET)
-#define HIGHEST (M_PI / OFFSET)
+#endif
+
+#ifndef HIGHEST
+#define HIGHEST (M_PI_2 / OFFSET)
+#endif
+
 class MabbleIntro
 {
 private:
