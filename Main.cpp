@@ -63,6 +63,10 @@ int main(int argc, char **argv)
                     if (b.remove_tile(mousePos.x, mousePos.y, screenPos.x, screenPos.y, list))
                         b.print_list(list);
                 }
+                else if (m.isButtonPressed(e.mouseButton.button))
+                {
+                    p1->get_tile_rack()->is_tile_pressed(mousePos, screenPos);
+                }
                 break;
             }
         }
