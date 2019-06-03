@@ -73,7 +73,6 @@ void RoundedRectangle::gen_shape()
     vertices = gen_curve(centreX, centreY, M_PI + M_PI_2, radiusD);
     for (int i = 0; i < pointCount; index++, i++)
         roundedRect.setPoint(index, vertices[i]);
-    roundedRect.setOutlineThickness(1.f);
     delete[] vertices;
 }
 
