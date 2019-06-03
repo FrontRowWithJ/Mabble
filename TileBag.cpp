@@ -21,7 +21,7 @@ char TileBag::get_tile(unsigned int index)
     for (int i = 0; i < index; i++)
         node = node->next;
     char tile = *static_cast<char *>(node->val);
-    tiles->delete_node(node);
+    tiles->delete_node(node, del);
     size--;
     return tile;
 }
@@ -69,4 +69,9 @@ int TileBag::get_size()
 bool TileBag::is_empty()
 {
     return size == 0;
+}
+
+void TileBag::del(void *val)
+{
+    delete static_cast<char *>(val);
 }
