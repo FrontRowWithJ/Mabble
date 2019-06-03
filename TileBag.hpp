@@ -9,6 +9,7 @@ class TileBag
 private:
   LinkedList *tiles;
   int size;
+
 public:
   TileBag();
   TileBag(int size, unsigned long seed);
@@ -21,5 +22,8 @@ public:
   static char *to_string(void *val);
   int get_size();
   bool is_empty();
+
+private:
+  static void del(void *val);
 };
 #endif
