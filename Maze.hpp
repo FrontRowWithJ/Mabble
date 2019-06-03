@@ -6,14 +6,36 @@
 #include "MazeTile.hpp"
 #include <random>
 
+#ifndef SYMBOLS
+#define SYMBOLS "0123456789-+/*="
+#endif
+
+#ifndef NUM_OF_SYMBOLS
+#define NUM_OF_SYMBOLS 15
+#endif
+
 class Maze
 {
 private:
+    typedef struct MazeRect
+    {
+        RoundedRectangle *rect;
+        int len;
+    } RectArray;
+
+    typedef struct TextStruct
+    {
+        Text *texts;
+        int len;
+    } TextArray;
+
     size_t columnLen;
     size_t screenWidth;
     size_t screenHeight;
     LinkedList *columns;
     LinkedList *displayColumn;
+    LinkedList *newDisplayColumn;
+    LinkedList *textColumns;
     float xPos;
     float yPos;
     float width;
@@ -21,23 +43,28 @@ private:
     float threshold;
     float startPos;
     Font f;
-    Node * displayPos;
+    Node *displayPos;
     Node *valPos;
     bool oof = false;
     bool *nextColumn;
+    bool *prevColumn;
+    float currXPos;
     const char *symbol;
+    
 public:
     Maze();
     Maze(size_t columnLen, size_t screenWidth, size_t screenHeight, Font f);
-    void display_matrix(RenderWindow *window);
     int get_width();
     int get_height();
+    void draw(RenderWindow *window);
 
 private:
-    void update_display();
+    void gen_column_visuals();
     void gen_column();
-    void update_tile_corners();
+    void gen_text_column();
     static void delete_rect(void *val);
     static void delete_bool(void *val);
+    static void delete_RectArray(void *val);
+    static void delete_text(void *val);
 };
 #endif
