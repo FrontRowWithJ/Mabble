@@ -122,3 +122,18 @@ bool TileRack::update_tile(int index, char value, bool isNull)
     }
     return true;
 }
+
+bool TileRack::is_tile_pressed(Vector2i mousePos, Vector2i screenPos)
+{
+    float x = mousePos.x - screenPos.x + X_OFFSET;
+    float y = mousePos.y - screenPos.y + Y_OFFSET;
+    float width = tiles->get_width();
+    float tileXpos = tiles->get_xpos();
+    float tileYpos = tiles->get_ypos();
+    x -= tileXpos;
+    x /= width;
+    if (y >= tileYpos && y < tileYpos + width && x >= 0 && x < NUM_OF_TILES && tiles[(int)x].get_state() != ON_BOARD_PERM && tiles[(int)x].get_state() != ON_BOARD_TEMP && is_tile_selected())
+    {
+        printf("%s\n", "yeet");
+    }
+}
