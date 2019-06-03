@@ -20,7 +20,6 @@ private:
   RectangleShape *visuals;
   int numOfVisuals;
   Tile tiles[NUM_OF_TILES];
-
 public:
   TileRack();
   TileRack(float xPos, float yPos, float width, float height, float fgScale);
@@ -31,5 +30,6 @@ public:
   bool deselect_tile(float mouseX, float mouseY, float screenX, float screenY);
   bool is_tile_selected();
   bool update_tile(int index, char value, bool isNull);
+  bool is_tile_pressed(Vector2i mousePos, Vector2i screenPos);
 };
 #endif
