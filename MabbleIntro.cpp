@@ -42,6 +42,7 @@ void MabbleIntro::gen_icon_box()
         icons[i].set_fill_color(fgColor);
         icons[i].set_outline_color(bgColor);
         icons[i].gen_shadow(5.f);
+        icons[i].set_thickness(1.f);
         yOffset += M_PI / (float)numberOfIcons;
     }
 }
@@ -142,7 +143,7 @@ void MabbleIntro::move_straight()
 {
     for (int i = numberOfIcons - 1; i > -1; i--)
     {
-        if ((movement == UP ? cycle[i] == HIGHEST : cycle[i] == (int)LOWEST) && canMoveStraight[i + 1])
+        if ((movement == UP ? cycle[i] == (int)HIGHEST : cycle[i] == (int)LOWEST) && canMoveStraight[i + 1])
             canMoveStraight[i] = true;
         if (!canMoveStraight[i])
         {
