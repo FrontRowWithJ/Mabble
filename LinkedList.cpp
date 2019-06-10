@@ -1,3 +1,5 @@
+#ifndef LINKEDLIST_C
+#define LINKEDLIST_C
 #include "LinkedList.hpp"
 // classes are going to have to have their own:
 // equal operator
@@ -228,7 +230,20 @@ void LinkedList<T>::print(function<char *(T)> c_str)
     for (Node *node = head; node != NULL; node = node->next)
     {
         //for primitive data types?
-        result += c_str == NULL ? node->val.c_str() : c_str(node->val);
+        result += c_str(node->val);
+        result += ", ";
+    }
+    printf("%s\n", result.substr(0, result.length() - 2).c_str());
+}
+
+template <typename T>
+void LinkedList<T>::print()
+{
+    string result = "";
+    for (Node *node = head; node != NULL; node = node->next)
+    {
+        //for primitive data types?
+        result += node->val.c_str();
         result += ", ";
     }
     printf("%s\n", result.substr(0, result.length() - 2).c_str());
@@ -303,3 +318,5 @@ typename LinkedList<T>::Node *LinkedList<T>::pop()
     h->next = NULL;
     return h;
 }
+
+#endif
