@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     Color c = Color(0xE6, 0xC1, 0x94, 0xFF);
     Board b = Board(500, 25, screenWidth / 2 - 250, 30, f, Color::Red, c);
     CheckButton cb = CheckButton(70, 20, screenWidth / 2 - 35, 600, f, 10 + 150, screenHeight - 60 - 10 - 60);
-    LinkedList *list = new LinkedList();
+    LinkedList<TileData> *list = new LinkedList<TileData>();
     while (window->isOpen())
     {
         window->clear(Color::White);
@@ -70,6 +70,7 @@ int main(int argc, char **argv)
                 break;
             }
         }
+        printf("oof0\n");
         p1->draw(window);
         p2->draw(window);
         b.draw(window);

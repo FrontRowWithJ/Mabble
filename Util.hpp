@@ -3,11 +3,13 @@
 
 #include <iostream>
 #include <string>
-#include "LinkedList.hpp"
+#include <cstring>
+// #include <cstring>
 #include <functional>
 #include <math.h>
 #include <chrono>
 #include <unistd.h>
+#include <cstdarg>
 // #include <SFML/Graphics.hpp>
 #include "SFML-2.5.1/include/SFML/Graphics.hpp"
 #include "SFML-2.5.1/include/SFML/System.hpp"
@@ -90,5 +92,40 @@ typedef struct BoardPosition
 #define SET_YPOS(X, Y) \
     lb.top - X - (Y - lb.height) / 2.f
 #endif
+
+#ifndef BYTE_T
+#define BYTE_T
 typedef unsigned char byte_t;
+#endif
+
+#ifndef V2F_OPERATOR_OVERLOAD
+#define V2F_OPERATOR_OVERLOAD
+
+static Vector2f operator+(Vector2f v, float constant)
+{
+    return Vector2f(v.x + constant, v.y + constant);
+}
+
+static Vector2f operator-(Vector2f v, float constant)
+{
+    return Vector2f(v.x - constant, v.y - constant);
+}
+
+static Vector2f operator/(Vector2f v, float constant)
+{
+    return Vector2f(v.x / constant, v.y / constant);
+}
+
+static Vector2f operator*(Vector2f v, float constant)
+{
+    return Vector2f(v.x * constant, v.y * constant);
+}
+
+static Vector2f operator/(Vector2f left, Vector2f right)
+{
+    return Vector2f(left.x / right.x, left.y / right.y);
+}
+
+#endif
+
 #endif

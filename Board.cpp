@@ -10,9 +10,9 @@ Board::Board(float width, int rowLen, float xPos, float yPos, Font font, Color t
     gen_board(font, textColor, bgColor);
 }
 
-bool Board::place_tile(float mouseX, float mouseY, float screenX, float screenY, LinkedList *placedTiles)
+bool Board::place_tile(float mouseX, float mouseY, float screenX, float screenY, LinkedList<TileData> *placedTiles)
 {
-    if (!(selectedTile == NULL))
+    if (selectedTile != NULL)
     {
         float x = mouseX - screenX + X_OFFSET;
         float y = mouseY - screenY + Y_OFFSET;
@@ -22,8 +22,7 @@ bool Board::place_tile(float mouseX, float mouseY, float screenX, float screenY,
         x -= xPos, y -= yPos;
         x /= width, y /= width;
         int i = (int)y, j = (int)x;
-        TileData *td = new TileData();
-        void *cast;
+        TileData td = TileData();
         if (i >= 0 && i < rowLen && j >= 0 && j < rowLen)
         {
             switch (table[i][j]->get_state())
@@ -34,9 +33,8 @@ bool Board::place_tile(float mouseX, float mouseY, float screenX, float screenY,
                 selectedTile->set_state(ON_BOARD_TEMP);
                 selectedTile->set_isSelected(false);
                 table[i][j]->update_text(selectedTile->get_value(), selectedTile->get_textColor());
-                *td = (TileData){i, j, selectedTile->get_value()};
-                cast = static_cast<void *>(td);
-                placedTiles->insert(cast);
+                td = (TileData){i, j, selectedTile->get_value()};
+                placedTiles->insert(td);
                 selectedTile = NULL;
                 return true;
             case TILE_FULL_PERM:
@@ -44,18 +42,17 @@ bool Board::place_tile(float mouseX, float mouseY, float screenX, float screenY,
             case TILE_FULL_TEMP:
                 Tile *t = table[i][j]->get_tile();
                 t->deselect_tile();
-                td->i = i;
-                td->j = j;
-                td->value = t->get_value();
-                cast = static_cast<void *>(td);
-                placedTiles->delete_node(cast, compare);
+                td = (TileData){i, j, t->get_value()};
+                td.i = i;
+                td.j = j;
+                td.value = t->get_value();
+                placedTiles->delete_node(td);
                 table[i][j]->set_tile(selectedTile);
                 selectedTile->set_state(ON_BOARD_TEMP);
                 table[i][j]->update_text(selectedTile->get_value(), selectedTile->get_textColor());
                 selectedTile->set_isSelected(false);
-                td->value = selectedTile->get_value();
-                cast = static_cast<void *>(td);
-                placedTiles->insert(cast);
+                td.value = selectedTile->get_value();
+                placedTiles->insert(td);
                 selectedTile = NULL;
                 return true;
             }
@@ -115,7 +112,7 @@ void Board::clear_selected_tile(bool canClear)
     // Find the boardTile associated with the selectedTile and clear it from the board
 }
 
-bool Board::remove_tile(float mouseX, float mouseY, float screenX, float screenY, LinkedList *placedTiles)
+bool Board::remove_tile(float mouseX, float mouseY, float screenX, float screenY, LinkedList<TileData> *placedTiles)
 {
     float x = mouseX - screenX + X_OFFSET;
     float y = mouseY - screenY + Y_OFFSET;
@@ -125,7 +122,7 @@ bool Board::remove_tile(float mouseX, float mouseY, float screenX, float screenY
     x -= xPos, y -= yPos;
     x /= width, y /= width;
     int i = (int)y, j = (int)x;
-    TileData *td = new TileData();
+    TileData td = TileData();
     if (i >= 0 && i < rowLen && j >= 0 && j < rowLen)
     {
         switch (table[i][j]->get_state())
@@ -137,9 +134,8 @@ bool Board::remove_tile(float mouseX, float mouseY, float screenX, float screenY
         case TILE_FULL_TEMP:
             Tile *t = table[i][j]->get_tile();
             t->deselect_tile();
-            *td = (TileData){i, j, t->get_value()};
-            void *cast = static_cast<void *>(td);
-            placedTiles->delete_node(cast, compare);
+            td = (TileData){i, j, t->get_value()};
+            placedTiles->delete_node(td);
             table[i][j]->set_tile(NULL);
             table[i][j]->set_state(TILE_EMPTY);
             table[i][j]->update_text(EMPTY, Color::Black);
@@ -149,24 +145,9 @@ bool Board::remove_tile(float mouseX, float mouseY, float screenX, float screenY
     return false;
 }
 
-int Board::compare(void *a, void *b)
+void Board::print_list(LinkedList<TileData> *list)
 {
-    TileData *td1 = static_cast<TileData *>(a);
-    TileData *td2 = static_cast<TileData *>(b);
-    return *td1 == *td2 ? 0 : 1;
-}
-
-char *Board::to_string(void *a)
-{
-    char *str = new char[2]();
-    TileData *td = static_cast<TileData *>(a);
-    str[0] = td->value;
-    return str;
-}
-
-void Board::print_list(LinkedList *list)
-{
-    list->print(to_string);
+    list->print(NULL);
 }
 
 BoardTile ***Board::get_table()
@@ -182,4 +163,14 @@ float Board::get_width()
 int Board::get_rowLen()
 {
     return rowLen;
+}
+
+bool TileData::operator==(TileData rhs)
+{
+    return i == rhs.i && j == rhs.j && value == rhs.value;
+}
+
+char *TileData::c_str()
+{
+    return new char[2]{value, '\0'};
 }

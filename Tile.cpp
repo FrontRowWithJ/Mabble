@@ -12,14 +12,16 @@ Tile::Tile(float xPos, float yPos, float width, Font font)
 {
     this->isNull = true;
     this->value = EMPTY;
-    this->xPos = xPos;
-    this->yPos = yPos;
-    this->width = width;
+    this->startXPos = xPos;
+    this->startYPos = yPos;
     this->font = font;
     isOperator = false;
     this->type = OPERATOR;
     this->state = ON_RACK;
     this->isSelected = false;
+    this->tds = STATIC;
+    this->setStep = true;
+    this->stepsTaken = 0;
     int beige = 0xE6C194;
     bgColor = Color(beige >> 16, (beige >> 8) & 0xFF, beige & 0xFF);
     this->textColor = bgColor;
@@ -28,15 +30,21 @@ Tile::Tile(float xPos, float yPos, float width, Font font)
 
 Tile::Tile(char value, float xPos, float yPos, float width, Font font)
 {
+    this->startXPos = xPos;
+    this->startYPos = yPos;
     this->value = value;
-    this->xPos = xPos;
-    this->yPos = yPos;
-    this->width = width;
     this->font = font;
     this->type = IS_OPERAND(value) ? OPERAND : value == '=' ? EQUAL_SIGN : OPERATOR;
     this->isNull = false;
     this->state = ON_RACK;
     this->isSelected = false;
+    this->tds = STATIC;
+    this->setStep = true;
+    this->stepsTaken = 0;
+    this->visuals = TileVisual(xPos, yPos, width, width, 10, new char[2]{value, '\0'}, font, true);
+    string s = string(new char[2]{value, '\0'});
+    Text t(s, font, width);
+    this->visuals.gen_text(t);
     int beige = 0xE6C194;
     bgColor = Color(beige >> 16, (beige >> 8) & 0xFF, beige & 0xFF);
     Color purple = Color(128, 0, 128, 255);
@@ -54,26 +62,8 @@ Tile::Tile(char value, float xPos, float yPos, float width, Font font)
         this->textColor = Color::Black;
         isOperator = true;
     }
-}
-
-void Tile::gen_text()
-{
-    text.setFont(font);
-    text.setFillColor(textColor);
-    text.setString(new char[2]{value, '\0'});
-    text.setCharacterSize(width);
-    FloatRect lb = text.getLocalBounds();
-    text.setOrigin(lb.left - xPos - (width - lb.width) / 2.f, lb.top - yPos - (width - lb.height) / 2.f);
-}
-
-Text Tile::get_text()
-{
-    return text;
-}
-
-RectangleShape *Tile::get_rectangles()
-{
-    return visuals;
+    this->visuals.set_text_color(this->textColor);
+    this->visuals.set_bg_color(bgColor);
 }
 
 Tile *Tile::select_tile()
@@ -81,13 +71,7 @@ Tile *Tile::select_tile()
     if (!isSelected && value != EMPTY)
     {
         isSelected = true;
-        //reduce the opacity of the object
-        for (int i = 0; i < numOfVisuals; i++)
-        {
-            Color fc = visuals[i].getFillColor();
-            visuals[i].setFillColor(Color(fc.r, fc.g, fc.b, fc.a / 3));
-        }
-        text.setFillColor(Color(textColor.r, textColor.g, textColor.b, textColor.a / 3));
+        visuals.set_alpha(MAX_ALPHA / 3);
         state = IS_SELECTED;
         return this;
     }
@@ -97,12 +81,7 @@ Tile *Tile::select_tile()
 void Tile::deselect_tile()
 {
     isSelected = false;
-    for (int i = 0; i < numOfVisuals; i++)
-    {
-        Color fc = visuals[i].getFillColor();
-        visuals[i].setFillColor(Color(fc.r, fc.g, fc.b, 255));
-    }
-    text.setFillColor(Color(textColor.r, textColor.g, textColor.b, 255));
+    visuals.set_alpha(MAX_ALPHA);
     state = ON_RACK;
 }
 
@@ -111,49 +90,69 @@ void Tile::place_tile()
     state = ON_BOARD_TEMP;
 }
 
-size_t Tile::get_numOfVisuals()
-{
-    return this->numOfVisuals;
-}
-
 bool Tile::is_selected()
 {
     return isSelected;
 }
 
-float Tile::get_xpos()
+float Tile::get_xPos()
 {
-    return xPos;
+    return visuals.get_position().x;
 }
 
-float Tile::get_ypos()
+float Tile::get_yPos()
 {
-    return yPos;
+    return visuals.get_position().y;
 }
 
 float Tile::get_width()
 {
-    return width;
+    return visuals.get_width();
 }
 
-void Tile::gen_tile_visuals()
+void Tile::draw(RenderWindow *window, Vector2f mousePos, Vector2f screenPos, Vector2f boardPos)
 {
-    RectangleShape bg(Vector2f(width, width));
-    bg.setPosition(Vector2f(xPos, yPos));
-    bg.setFillColor(bgColor);
-    bg.setOutlineColor(Color::Black);
-    bg.setOutlineThickness(1);
-    numOfVisuals = 1;
-    //adding the rectangles to the rectangle list
-    visuals = new RectangleShape[numOfVisuals];
-    visuals[0] = bg;
-}
+    switch (tds)
+    {
+    case STATIC:
+        break;
+    case MOUSE_POS:
+        visuals.set_position(mousePos - screenPos + Vector2f(X_OFFSET, Y_OFFSET));
+        break;
+    case TILE_RACK_POS:
+        if (setStep)
+        {
+            step = (Vector2f(startXPos, startYPos) - visuals.get_position()) / NUM_OF_STEPS;
+            setStep = false;
+        }
+        visuals.set_position(visuals.get_position() + step);
+        if (++stepsTaken == NUM_OF_STEPS)
+        {
+            stepsTaken = 0;
+            visuals.set_position(startXPos, startYPos);
+            tds = STATIC;
+            setStep = true;
+        }
+        break;
 
-void Tile::draw(RenderWindow *window)
-{
-    for (int i = 0; i < numOfVisuals; i++)
-        window->draw(visuals[i]);
-    window->draw(text);
+    case BOARD_POS:
+        if (setStep)
+        {
+            step = (boardPos - visuals.get_position()) / NUM_OF_STEPS;
+            setStep = false;
+        }
+        visuals.set_position(visuals.get_position() + step);
+        if (++stepsTaken == NUM_OF_STEPS)
+        {
+            stepsTaken = 0;
+            visuals.set_position(boardPos);
+            tds = STATIC;
+            setStep = true;
+        }
+    }
+    printf("Tile::draw0\n");
+    visuals.draw(window);
+    printf("Tile::draw1\n");
 }
 
 bool Tile::is_null()
@@ -166,9 +165,9 @@ char Tile::get_value()
     return value;
 }
 
-void Tile::set_state(TileState state)
+void Tile::set_state(TileState _state)
 {
-    this->state = state;
+    state = _state;
     if (isOperator)
         deselect_tile();
 }
@@ -185,7 +184,8 @@ Color Tile::get_textColor()
 
 bool Tile::operator!=(Tile tile)
 {
-    return value != tile.value || xPos != tile.xPos || yPos != tile.yPos;
+    float xPos = get_xPos(), yPos = get_yPos();
+    return value != tile.value || xPos != tile.get_xPos() || yPos != tile.get_yPos();
 }
 
 void Tile::set_isSelected(bool isSelected)
@@ -198,17 +198,12 @@ bool Tile::is_operator()
     return isOperator;
 }
 
-float Tile::get_xPos()
-{
-    return xPos;
-}
-
-float Tile::get_yPos()
-{
-    return yPos;
-}
-
 Font Tile::get_font()
 {
     return font;
+}
+
+void Tile::set_TileDrawState(TileDrawState tds)
+{
+    this->tds = tds;
 }

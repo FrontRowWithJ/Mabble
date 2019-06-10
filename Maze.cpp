@@ -10,10 +10,9 @@ Maze::Maze(size_t columnLen, size_t screenWidth, size_t screenHeight, Font f)
     this->screenWidth = screenWidth;
     this->screenHeight = screenHeight;
     this->columnLen = columnLen & 1 == 0 ? columnLen + 1 : columnLen;
-    columns = new LinkedList();
-    displayColumn = new LinkedList();
-    newDisplayColumn = new LinkedList();
-    textColumns = new LinkedList();
+    columns = new LinkedList<bool *>();
+    displayColumn = new LinkedList<Maze::RectArray>();
+    textColumns = new LinkedList<Maze::TextArray>();
     this->xPos = 0;
     this->yPos = 0;
     this->currXPos = this->xPos;
@@ -35,26 +34,26 @@ Maze::Maze(size_t columnLen, size_t screenWidth, size_t screenHeight, Font f)
 
 void Maze::draw(RenderWindow *window)
 {
-    for (Node *node = newDisplayColumn->head; node != NULL; node = node->next)
+    for (LinkedList<Maze::RectArray>::Node *node = displayColumn->head; node != NULL; node = node->next)
     {
-        RectArray *ra = static_cast<RectArray *>(node->val);
-        for (int i = 0; i < ra->len; i++)
+        Maze::RectArray ra = node->val;
+        for (int i = 0; i < ra.len; i++)
         {
-            ra->rect[i].draw(window);
-            ra->rect[i].set_position(ra->rect[i].get_xPos() - panSpeed, ra->rect[i].get_yPos());
+            ra.rect[i].draw(window);
+            ra.rect[i].set_position(ra.rect[i].get_xPos() - panSpeed, ra.rect[i].get_yPos());
         }
     }
 
-    for (Node *node = textColumns->head; node != NULL; node = node->next)
+    for (LinkedList<Maze::TextArray>::Node *node = textColumns->head; node != NULL; node = node->next)
     {
-        TextArray *ta = static_cast<TextArray *>(node->val);
-        for (int i = 0; i < ta->len; i++)
+        Maze::TextArray ta = node->val;
+        for (int i = 0; i < ta.len; i++)
         {
-            window->draw(ta->texts[i]);
-            ta->texts[i].setPosition(ta->texts[i].getPosition() - Vector2f(panSpeed, 0));
+            window->draw(ta.texts[i]);
+            ta.texts[i].setPosition(ta.texts[i].getPosition() - Vector2f(panSpeed, 0));
         }
     }
-    
+
     currXPos -= panSpeed;
     threshold += panSpeed;
     startPos += panSpeed;
@@ -65,9 +64,17 @@ void Maze::draw(RenderWindow *window)
     }
     if (startPos >= width)
     {
-        newDisplayColumn->delete_node(newDisplayColumn->head, delete_RectArray);
-        columns->delete_node(columns->head, delete_bool);
-        textColumns->delete_node(textColumns->head, delete_text);
+        LinkedList<Maze::RectArray>::Node *td0 = displayColumn->pop();
+        Maze::RectArray td1 = td0->val;
+        delete[] td1.rect;
+        delete td0;
+        LinkedList<bool *>::Node *b = columns->pop();
+        delete[] b->val;
+        delete b;
+        LinkedList<Maze::TextArray>::Node *t0 = textColumns->pop();
+        Maze::TextArray t1 = t0->val;
+        delete[] t1.texts;
+        delete t0;
         startPos = 0;
     }
 }
@@ -106,8 +113,8 @@ void Maze::gen_column()
         nextColumn[i] = true;
     for (int i = 1; i < columnLen; i += 2)
         nextColumn[i] = rand() % 2 == 0;
-    columns->insert(static_cast<void *>(column));
-    columns->insert(static_cast<void *>(connectorColumn));
+    columns->insert(column);
+    columns->insert(connectorColumn);
     gen_text_column();
     gen_column_visuals();
     oof = true;
@@ -117,11 +124,11 @@ void Maze::gen_column_visuals()
 {
     int n = 0;
     Text t;
-    Node *tail = columns->tail;
-    Node *tailParent = columns->get_parent(columns->tail);
-    bool *column0 = static_cast<bool *>(tailParent->val);
-    bool *column1 = static_cast<bool *>(tail->val);
-    RectArray *r0 = new RectArray(), *r1 = new RectArray();
+    LinkedList<bool *>::Node *tail = columns->tail;
+    LinkedList<bool *>::Node *tailParent = columns->get_parent(columns->tail);
+    bool *column0 = tailParent->val;
+    bool *column1 = tail->val;
+    Maze::RectArray *r0 = new Maze::RectArray(), *r1 = new Maze::RectArray();
     r0->len = 1;
     r1->len = 1;
     bool state0 = column0[0], state1 = column1[0];
@@ -198,8 +205,8 @@ void Maze::gen_column_visuals()
     r1->rect[index1].set_fill_color(state1 ? COLOR(0xC76B98) : COLOR(0xFFFFFF));
     r1->rect[index1].set_thickness(0);
     currXPos += 2 * width;
-    newDisplayColumn->insert(static_cast<void *>(r0));
-    newDisplayColumn->insert(static_cast<void *>(r1));
+    displayColumn->insert(*r0);
+    displayColumn->insert(*r1);
 }
 
 void Maze::delete_bool(void *val)
@@ -221,16 +228,16 @@ void Maze::delete_text(void *val)
 
 void Maze::gen_text_column()
 {
-    TextArray *ta0 = new TextArray();
-    TextArray *ta1 = new TextArray();
+    Maze::TextArray *ta0 = new Maze::TextArray();
+    Maze::TextArray *ta1 = new Maze::TextArray();
     Color operandColor = COLOR(0x270F36);
     Color operatorColor = COLOR(0x632B6C);
     ta0->len = 0;
     ta1->len = 0;
-    Node *tail = columns->tail;
-    Node *parentTail = columns->get_parent(columns->tail);
-    bool *column0 = static_cast<bool *>(parentTail->val);
-    bool *column1 = static_cast<bool *>(tail->val);
+    LinkedList<bool *>::Node *tail = columns->tail;
+    LinkedList<bool *>::Node *parentTail = columns->get_parent(columns->tail);
+    bool *column0 = parentTail->val;
+    bool *column1 = tail->val;
     for (int i = 0; i < columnLen; i++)
     {
         if (column0[i])
@@ -272,6 +279,6 @@ void Maze::gen_text_column()
             index1++;
         }
     }
-    textColumns->insert(static_cast<void *>(ta0));
-    textColumns->insert(static_cast<void *>(ta1));
+    textColumns->insert(*ta0);
+    textColumns->insert(*ta1);
 }

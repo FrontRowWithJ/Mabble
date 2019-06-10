@@ -4,6 +4,8 @@
 #include "Util.hpp"
 #include "RoundedRectangle.hpp"
 #include "MazeTile.hpp"
+#include "LinkedList.hpp"
+#include "LinkedList.cpp"
 #include <random>
 
 #ifndef SYMBOLS
@@ -32,10 +34,9 @@ private:
     size_t columnLen;
     size_t screenWidth;
     size_t screenHeight;
-    LinkedList *columns;
-    LinkedList *displayColumn;
-    LinkedList *newDisplayColumn;
-    LinkedList *textColumns;
+    LinkedList<bool *> *columns;
+    LinkedList<RectArray> *displayColumn;
+    LinkedList<TextArray> *textColumns;
     float xPos;
     float yPos;
     float width;
@@ -43,14 +44,14 @@ private:
     float threshold;
     float startPos;
     Font f;
-    Node *displayPos;
-    Node *valPos;
+    LinkedList<RoundedRectangle *>::Node *displayPos;
+    LinkedList<bool *>::Node *valPos;
     bool oof = false;
     bool *nextColumn;
     bool *prevColumn;
     float currXPos;
     const char *symbol;
-    
+
 public:
     Maze();
     Maze(size_t columnLen, size_t screenWidth, size_t screenHeight, Font f);

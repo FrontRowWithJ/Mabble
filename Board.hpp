@@ -5,6 +5,7 @@
 #include "Util.hpp"
 #include "Eval.hpp"
 #include "TileRack.hpp"
+#include "LinkedList.hpp"
 
 #define IS_EQUALS(V1, V2) \
   V1.i == V2.i &&V1.j == V2.j
@@ -15,10 +16,8 @@ typedef struct MabbleTile
   int i;
   int j;
   char value;
-  bool operator==(struct MabbleTile td)
-  {
-    return i == td.i && j == td.j && value == td.value;
-  }
+  bool operator==(struct MabbleTile rhs);
+  char *c_str();
 } TileData;
 class Board
 {
@@ -33,15 +32,13 @@ private:
 
 public:
   Board(float width, int rowLen, float xPos, float yPos, Font font, Color textColor, Color bgColor);
-  bool place_tile(float mouseX, float mouseY, float screenX, float screenY, LinkedList *placedTiles);
-  bool remove_tile(float mouseX, float mouseY, float screenX, float screenY, LinkedList *placedTiles);
+  bool place_tile(float mouseX, float mouseY, float screenX, float screenY, LinkedList<TileData> *placedTiles);
+  bool remove_tile(float mouseX, float mouseY, float screenX, float screenY, LinkedList<TileData> *placedTiles);
   void clear_board();
   void draw(RenderWindow *window);
   void set_selected_tile(Tile *selectedTile);
   void clear_selected_tile(bool canClear);
-  static int compare(void *a, void *b);
-  static char *to_string(void *a);
-  void print_list(LinkedList *list);
+  void print_list(LinkedList<TileData> *list);
   BoardTile ***get_table();
   float get_width();
   int get_rowLen();

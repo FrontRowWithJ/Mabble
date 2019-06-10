@@ -13,11 +13,6 @@
               c    
 */
 
-static Vector2f operator+(Vector2f a, float offset)
-{
-  return Vector2f(a.x + offset, a.y + offset);
-}
-
 class RoundedRectangle
 {
 private:

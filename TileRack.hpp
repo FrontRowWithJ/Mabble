@@ -20,12 +20,13 @@ private:
   RectangleShape *visuals;
   int numOfVisuals;
   Tile tiles[NUM_OF_TILES];
+
 public:
   TileRack();
   TileRack(float xPos, float yPos, float width, float height, float fgScale);
   void gen_tiles(const char *operands);
   void gen_visuals();
-  void draw(RenderWindow *window);
+  void draw(RenderWindow *window, Vector2f mousePos, Vector2f screenPos, Vector2f newPos);
   Tile *select_tile(float mouseX, float mouseY, float screenX, float screenY);
   bool deselect_tile(float mouseX, float mouseY, float screenX, float screenY);
   bool is_tile_selected();

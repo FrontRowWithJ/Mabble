@@ -2,12 +2,13 @@
 #define TILEBAG_H
 
 #include "Util.hpp"
+#include "LinkedList.hpp"
 #include <time.h>
 #include <random>
 class TileBag
 {
 private:
-  LinkedList *tiles;
+  LinkedList<char> *tiles;
   int size;
 
 public:
@@ -18,12 +19,8 @@ public:
   char get_tile(unsigned int index);
   void add_tile(char tile);
   void print();
-  static int compare_tile(void *a, void *b);
-  static char *to_string(void *val);
+  char *c_str(char c);
   int get_size();
   bool is_empty();
-
-private:
-  static void del(void *val);
 };
 #endif

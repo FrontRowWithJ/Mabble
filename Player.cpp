@@ -43,8 +43,10 @@ void Player::update_score(long points)
 void Player::draw(RenderWindow *window)
 {
     //? more things are gonna need to be drawn over time
-    tileRack->draw(window);
+    tileRack->draw(window, Vector2f(), Vector2f(), Vector2f());
+    printf("Player::draw0\n");
     sb->draw(window);
+    printf("Player::draw1\n");
 }
 
 TileRack *Player::get_tile_rack()

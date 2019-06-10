@@ -23,8 +23,6 @@ void TileRack::gen_tiles(const char *operands)
     for (int i = 0; i < NUM_OF_TILES; i++)
     {
         tiles[i] = Tile(operands[i], pos.x + xOffset, pos.y + yOffset, tileWidth, font);
-        tiles[i].gen_tile_visuals();
-        tiles[i].gen_text();
         xOffset += tileWidth;
     }
 }
@@ -51,12 +49,14 @@ void TileRack::gen_visuals()
     visuals[1] = fg;
 }
 
-void TileRack::draw(RenderWindow *window)
+void TileRack::draw(RenderWindow *window, Vector2f mousePos, Vector2f screenPos, Vector2f newPos)
 {
     for (int i = 0; i < numOfVisuals; i++)
         window->draw(visuals[i]);
+    printf("TileRack::draw0\n");
     for (int i = 0; i < NUM_OF_TILES; i++)
-        tiles[i].draw(window);
+        tiles[i].draw(window, mousePos, screenPos, newPos);
+    printf("TileRack::draw1\n");
 }
 
 Tile *TileRack::select_tile(float mouseX, float mouseY, float screenX, float screenY)
@@ -64,8 +64,8 @@ Tile *TileRack::select_tile(float mouseX, float mouseY, float screenX, float scr
     float x = mouseX - screenX + X_OFFSET;
     float y = mouseY - screenY + Y_OFFSET;
     float width = tiles->get_width();
-    float tileXpos = tiles->get_xpos();
-    float tileYpos = tiles->get_ypos();
+    float tileXpos = tiles->get_xPos();
+    float tileYpos = tiles->get_yPos();
     x -= tileXpos;
     x /= width;
     if (y >= tileYpos && y < tileYpos + width && x >= 0 && x < NUM_OF_TILES && (tiles[(int)x].get_state() != ON_BOARD_TEMP || tiles[(int)x].is_operator()) && tiles[(int)x].get_state() != ON_BOARD_PERM && !is_tile_selected())
@@ -88,8 +88,8 @@ bool TileRack::deselect_tile(float mouseX, float mouseY, float screenX, float sc
     float x = mouseX - screenX + X_OFFSET;
     float y = mouseY - screenY + Y_OFFSET;
     float width = tiles->get_width();
-    float tileXpos = tiles->get_xpos();
-    float tileYpos = tiles->get_ypos();
+    float tileXpos = tiles->get_xPos();
+    float tileYpos = tiles->get_yPos();
     x -= tileXpos;
     x /= width;
     if (y >= tileYpos && y < tileYpos + width && x >= 0 && x < NUM_OF_TILES && tiles[(int)x].get_state() != ON_BOARD_PERM && tiles[(int)x].get_state() != ON_BOARD_TEMP && is_tile_selected())
@@ -109,17 +109,9 @@ bool TileRack::update_tile(int index, char value, bool isNull)
     if (ts == ON_RACK || ts == IS_SELECTED)
         return false;
     if (isNull)
-    {
         tiles[index] = Tile(t.get_xPos(), t.get_yPos(), t.get_width(), t.get_font());
-        tiles[index].gen_tile_visuals();
-        tiles[index].gen_text();
-    }
     else
-    {
         tiles[index] = Tile(value, t.get_xPos(), t.get_yPos(), t.get_width(), t.get_font());
-        tiles[index].gen_tile_visuals();
-        tiles[index].gen_text();
-    }
     return true;
 }
 
@@ -128,8 +120,8 @@ bool TileRack::is_tile_pressed(Vector2i mousePos, Vector2i screenPos)
     float x = mousePos.x - screenPos.x + X_OFFSET;
     float y = mousePos.y - screenPos.y + Y_OFFSET;
     float width = tiles->get_width();
-    float tileXpos = tiles->get_xpos();
-    float tileYpos = tiles->get_ypos();
+    float tileXpos = tiles->get_xPos();
+    float tileYpos = tiles->get_yPos();
     x -= tileXpos;
     x /= width;
     if (y >= tileYpos && y < tileYpos + width && x >= 0 && x < NUM_OF_TILES && tiles[(int)x].get_state() != ON_BOARD_PERM && tiles[(int)x].get_state() != ON_BOARD_TEMP && is_tile_selected())

@@ -12,12 +12,12 @@ CheckButton::CheckButton(float width, float height, float xPos, float yPos, Font
     this->font = font;
     this->turnsPassed = 0;
     this->isWinnerKnown = false;
-    knownEquations = new LinkedList();
+    knownEquations = new LinkedList<CheckButton::Equation>();
     gen_visuals(turnXPos, turnYPos);
     gen_text(turnXPos, turnYPos);
 }
 
-void CheckButton::check(float mousePosX, float mousePosY, float screenPosX, float screenPosY, Board board, LinkedList *placedTiles, Player *playerOne, Player *playerTwo, bool *isPlayerOne, float screenWidth, float screenHeight)
+void CheckButton::check(float mousePosX, float mousePosY, float screenPosX, float screenPosY, Board board, LinkedList<TileData> *placedTiles, Player *playerOne, Player *playerTwo, bool *isPlayerOne, float screenWidth, float screenHeight)
 {
     float x = mousePosX - screenPosX + X_OFFSET;
     float y = mousePosY - screenPosY + Y_OFFSET;
@@ -88,47 +88,43 @@ void CheckButton::draw(RenderWindow *window)
     }
 }
 
-CheckButton::Direction CheckButton::is_same_line(LinkedList *placedTiles, BoardTile ***table)
+CheckButton::Direction CheckButton::is_same_line(LinkedList<TileData> *placedTiles, BoardTile ***table)
 {
-    TileData *pos = static_cast<TileData *>(placedTiles->head->val);
-    int i = pos->i, j = pos->j, len = placedTiles->count();
+    TileData pos = placedTiles->head->val;
+    int i = pos.i, j = pos.j, len = placedTiles->count();
     if (len == 1)
         return UNKOWN;
     Direction d;
-    pos = static_cast<TileData *>(placedTiles->head->next->val);
-    if (i == pos->i)
+    pos = placedTiles->head->next->val;
+    if (i == pos.i)
     {
-        i = pos->i;
+        i = pos.i;
         d = RIGHT;
     }
-    else if (j == pos->j)
+    else if (j == pos.j)
     {
-        j = pos->j;
+        j = pos.j;
         d = DOWN;
     }
     else
         return NEITHER;
-    for (Node *node = placedTiles->head->next->next; node != NULL; node = node->next)
+    for (LinkedList<TileData>::Node *node = placedTiles->head->next->next; node != NULL; node = node->next)
     {
-        TileData *td = static_cast<TileData *>(node->val);
-        if ((d == RIGHT ? td->i != i : td->j != j))
+        TileData td = node->val;
+        if ((d == RIGHT ? td.i != i : td.j != j))
             return NEITHER;
     }
     return d;
 }
 
-int CheckButton::compare_right(void *a, void *b)
+int CheckButton::compare_right(TileData left, TileData right)
 {
-    TileData *td1 = static_cast<TileData *>(a);
-    TileData *td2 = static_cast<TileData *>(b);
-    return td1->j < td2->j ? -1 : td1->j == td2->j ? 0 : 1;
+    return left.j < right.j ? -1 : left.j == right.j ? 0 : 1;
 }
 
-int CheckButton::compare_down(void *a, void *b)
+int CheckButton::compare_down(TileData left, TileData right)
 {
-    TileData *td1 = static_cast<TileData *>(a);
-    TileData *td2 = static_cast<TileData *>(b);
-    return td1->i < td2->i ? -1 : td1->i == td2->i ? 0 : 1;
+    return left.i < right.i ? -1 : left.i == right.i ? 0 : 1;
 }
 
 bool CheckButton::is_isolated(TileData *td, BoardTile ***table, int rowLen)
@@ -147,16 +143,16 @@ bool CheckButton::is_isolated(TileData *td, BoardTile ***table, int rowLen)
     return true;
 }
 
-bool CheckButton::are_tiles_contiguous(Direction d, BoardTile ***table, LinkedList *placedTiles, int rowLen)
+bool CheckButton::are_tiles_contiguous(Direction d, BoardTile ***table, LinkedList<TileData> *placedTiles, int rowLen)
 {
     if (d == DOWN)
     {
         placedTiles->sort(compare_down);
-        TileData *td1 = static_cast<TileData *>(placedTiles->head->val);
-        TileData *td2 = static_cast<TileData *>(placedTiles->tail->val);
-        int start = td1->i;
-        int j = td1->j;
-        int end = td2->i;
+        TileData td1 = placedTiles->head->val;
+        TileData td2 = placedTiles->tail->val;
+        int start = td1.i;
+        int j = td1.j;
+        int end = td2.i;
         for (int i = start; i < end; i++)
             if (table[i][j]->get_state() == TILE_EMPTY)
                 return false;
@@ -165,36 +161,34 @@ bool CheckButton::are_tiles_contiguous(Direction d, BoardTile ***table, LinkedLi
     if (d == RIGHT)
     {
         placedTiles->sort(compare_right);
-        TileData *td1 = static_cast<TileData *>(placedTiles->head->val);
-        TileData *td2 = static_cast<TileData *>(placedTiles->tail->val);
-        int start = td1->j;
-        int i = td1->i;
-        int end = td2->j;
+        TileData td1 = placedTiles->head->val;
+        TileData td2 = placedTiles->tail->val;
+        int start = td1.j;
+        int i = td1.i;
+        int end = td1.j;
         for (int j = start; j < end; j++)
             if (table[i][j]->get_state() == TILE_EMPTY)
                 return false;
         return true;
     }
     if (d == UNKOWN)
-        return !is_isolated(static_cast<TileData *>(placedTiles->head->val), table, rowLen);
+        return !is_isolated(&(placedTiles->head->val), table, rowLen);
 }
 
-LinkedList *CheckButton::gen_equation_list(BoardTile ***table, int rowLen, LinkedList *placedTiles)
+LinkedList<CheckButton::Equation> *CheckButton::gen_equation_list(BoardTile ***table, int rowLen, LinkedList<TileData> *placedTiles)
 {
-    LinkedList *result = new LinkedList();
-    for (Node *node = placedTiles->head; node != NULL; node = node->next)
+    LinkedList<CheckButton::Equation> *result = new LinkedList<CheckButton::Equation>();
+    for (LinkedList<TileData>::Node *node = placedTiles->head; node != NULL; node = node->next)
     {
-        TileData *td = static_cast<TileData *>(node->val);
-        CheckButton::Position posRight = get_equation_begin_pos(CheckButton::RIGHT, table, td->i, td->j);
+        TileData td = node->val;
+        CheckButton::Position posRight = get_equation_begin_pos(CheckButton::RIGHT, table, td.i, td.j);
         CheckButton::Equation *equationRight = gen_equation(table, rowLen, CheckButton::RIGHT, posRight.i, posRight.j);
-        void *castRight = static_cast<void *>(equationRight);
-        if (equationRight->value.length() > 1 && !knownEquations->contains(castRight, compare_equation) && !result->contains(castRight, compare_equation))
-            result->insert(castRight);
-        CheckButton::Position posLeft = get_equation_begin_pos(CheckButton::DOWN, table, td->i, td->j);
+        if (equationRight->value.length() > 1 && !knownEquations->contains(*equationRight) && !result->contains(*equationRight))
+            result->insert(*equationRight);
+        CheckButton::Position posLeft = get_equation_begin_pos(CheckButton::DOWN, table, td.i, td.j);
         CheckButton::Equation *equationDown = gen_equation(table, rowLen, CheckButton::DOWN, posLeft.i, posLeft.j);
-        void *castDown = static_cast<void *>(equationDown);
-        if (equationDown->value.length() > 1 && !knownEquations->contains(castDown, compare_equation) && !result->contains(castDown, compare_equation))
-            result->insert(castDown);
+        if (equationDown->value.length() > 1 && !knownEquations->contains(*equationDown) && !result->contains(*equationDown))
+            result->insert(*equationDown);
     }
     return result;
 }
@@ -242,67 +236,63 @@ int CheckButton::compare_equation(void *a, void *b)
     return *e1 == *e2 ? 0 : 1;
 }
 
-void CheckButton::filter_equation_list(LinkedList *equationList)
+void CheckButton::filter_equation_list(LinkedList<CheckButton::Equation> *equationList)
 {
-    for (Node *a = equationList->head; a->next != NULL; a = a->next)
-    {
-        for (Node *b = a->next; b != NULL;)
+    for (LinkedList<CheckButton::Equation>::Node *a = equationList->head; a->next != NULL; a = a->next)
+        for (LinkedList<CheckButton::Equation>::Node *b = a->next; b != NULL;)
         {
-            if (compare_equation(a->val, b->val) == EQUAL)
+            if (a->val == b->val)
             {
-                Node *t = b->next;
-                equationList->remove(b, compare_equation);
+                LinkedList<CheckButton::Equation>::Node *t = b->next;
+                equationList->remove(b->val);
                 b = t;
             }
             else
-            {
                 b = b->next;
-            }
         }
-    }
 }
 
-string CheckButton::gen_incorrect_statement_string(LinkedList *equations)
+string CheckButton::gen_incorrect_statement_string(LinkedList<CheckButton::Equation> *equations)
 {
     string result = string("Sorry but");
     int equationsLen = equations->count();
-    Node *node = equations->head;
+    LinkedList<CheckButton::Equation>::Node *node = equations->head;
     if (equationsLen == 1)
     {
-        Equation *eq = static_cast<Equation *>(node->val);
-        result.append("(" + eq->value + ") isn't a valid equation\n");
+        CheckButton::Equation eq = node->val;
+        result.append("(" + eq.value + ") isn't a valid equation\n");
         return result;
     }
     for (; node->next->next != NULL; node = node->next)
     {
-        Equation *eq = static_cast<Equation *>(node->val);
-        result += "(" + eq->value + "), ";
+        CheckButton::Equation eq = node->val;
+        result += "(" + eq.value + "), ";
     }
-    Equation *eq = static_cast<Equation *>(node->val);
-    result += "(" + eq->value + ") and ";
-    eq = static_cast<Equation *>(node->next->val);
-    result += "(" + eq->value + ") aren't valid equations\n";
+    CheckButton::Equation eq = node->val;
+    result += "(" + eq.value + ") and ";
+    eq = node->next->val;
+    result += "(" + eq.value + ") aren't valid equations\n";
     return result;
 }
 
-void CheckButton::set_to_cant_remove(LinkedList *placedTiles, BoardTile ***table)
+void CheckButton::set_to_cant_remove(LinkedList<TileData> *placedTiles, BoardTile ***table)
 {
-    for (Node *node = placedTiles->head; node != NULL; node = node->next)
+    for (LinkedList<TileData>::Node *node = placedTiles->head; node != NULL; node = node->next)
     {
-        TileData *td = static_cast<TileData *>(node->val);
-        table[td->i][td->j]->set_state(TILE_FULL_PERM);
+        TileData td = node->val;
+        table[td.i][td.j]->set_state(TILE_FULL_PERM);
     }
 }
 
-evalResult_t *CheckButton::check_structure(LinkedList *equations, int *len)
+evalResult_t *CheckButton::check_structure(LinkedList<CheckButton::Equation> *equations, int *len)
 {
     *len = equations->count();
     evalResult_t *results = new evalResult_t[*len];
     int i = 0;
-    for (Node *node = equations->head; node != NULL; node = node->next)
+    for (LinkedList<CheckButton::Equation>::Node *node = equations->head; node != NULL; node = node->next)
     {
-        Equation *eq = static_cast<Equation *>(node->val);
-        results[i++] = check_equation(&eq->value);
+        CheckButton::Equation eq = node->val;
+        results[i++] = check_equation(&eq.value);
     }
     return results;
 }
@@ -315,16 +305,16 @@ bool CheckButton::are_equation_structure_valid(evalResult_t *resultCodes, int le
     return true;
 }
 
-LinkedList *CheckButton::split_list(LinkedList *equations, evalResult_t *resultCodes, evalResult_t code)
+LinkedList<CheckButton::Equation> *CheckButton::split_list(LinkedList<CheckButton::Equation> *equations, evalResult_t *resultCodes, evalResult_t code)
 {
-    LinkedList *invalidEquations = new LinkedList();
+    LinkedList<CheckButton::Equation> *invalidEquations = new LinkedList<CheckButton::Equation>();
     int i = 0;
-    for (Node *node = equations->head; node != NULL;)
+    for (LinkedList<CheckButton::Equation>::Node *node = equations->head; node != NULL;)
     {
-        Node *n = node->next;
+        LinkedList<CheckButton::Equation>::Node *n = node->next;
         if (resultCodes[i++] != code)
         {
-            invalidEquations->insert(equations->remove(node->val, compare_equation)->val);
+            invalidEquations->insert(equations->remove(node->val)->val);
             node = n;
         }
         else
@@ -333,15 +323,15 @@ LinkedList *CheckButton::split_list(LinkedList *equations, evalResult_t *resultC
     return invalidEquations;
 }
 
-evalResult_t *CheckButton::evaluate_equations(LinkedList *equations, long *totalScore, int *len)
+evalResult_t *CheckButton::evaluate_equations(LinkedList<CheckButton::Equation> *equations, long *totalScore, int *len)
 {
     *len = equations->count();
     evalResult_t *results = new evalResult_t[*len];
     int i = 0;
-    for (Node *node = equations->head; node != NULL; node = node->next)
+    for (LinkedList<CheckButton::Equation>::Node *node = equations->head; node != NULL; node = node->next)
     {
-        Equation *eq = static_cast<Equation *>(node->val);
-        *totalScore += evaluate(&eq->value, &results[i++]);
+        CheckButton::Equation eq = node->val;
+        *totalScore += evaluate(&eq.value, &results[i++]);
     }
     return results;
 }
@@ -362,7 +352,7 @@ bool CheckButton::are_equations_balanced(evalResult_t *resultCodes, int len)
 // If there are some invalid equations I will prompt to the user that some of the equations are incorrect
 // If not tell the user congrats and the give him/her their points
 
-void CheckButton::check_player(LinkedList *placedTiles, Board *board, Player *player1, Player *player2, bool *isPlayerOne)
+void CheckButton::check_player(LinkedList<TileData> *placedTiles, Board *board, Player *player1, Player *player2, bool *isPlayerOne)
 {
     if (placedTiles->head != NULL)
     {
@@ -373,7 +363,7 @@ void CheckButton::check_player(LinkedList *placedTiles, Board *board, Player *pl
             {
                 if (are_tiles_connected(placedTiles, board->get_table(), board->get_rowLen()))
                 {
-                    LinkedList *equationList = gen_equation_list(board->get_table(), board->get_rowLen(), placedTiles);
+                    LinkedList<CheckButton::Equation> *equationList = gen_equation_list(board->get_table(), board->get_rowLen(), placedTiles);
                     int len = 0;
                     evalResult_t *structureCodes = check_structure(equationList, &len);
                     if (are_equation_structure_valid(structureCodes, len))
@@ -403,15 +393,15 @@ void CheckButton::check_player(LinkedList *placedTiles, Board *board, Player *pl
                         }
                         else
                         {
-                            LinkedList *incurrEquations = split_list(equationList, structureCodes, EVAL_LEFT_DOES_NOT_EQUAL_RIGHT);
-                            string incurrstatements = gen_incorrect_statement_string(incurrEquations);
+                            LinkedList<CheckButton::Equation> *incorrEquations = split_list(equationList, structureCodes, EVAL_LEFT_DOES_NOT_EQUAL_RIGHT);
+                            string incurrstatements = gen_incorrect_statement_string(incorrEquations);
                             cout << incurrstatements << endl;
                         }
                     }
                     else
                     {
-                        LinkedList *incurrEquations = split_list(equationList, structureCodes, EVAL_VALID_EQUATION);
-                        string incurrstatements = gen_incorrect_statement_string(incurrEquations);
+                        LinkedList<CheckButton::Equation> *incorrEquations = split_list(equationList, structureCodes, EVAL_VALID_EQUATION);
+                        string incurrstatements = gen_incorrect_statement_string(incorrEquations);
                         cout << incurrstatements << endl;
                     }
                 }
@@ -420,12 +410,12 @@ void CheckButton::check_player(LinkedList *placedTiles, Board *board, Player *pl
     }
 }
 
-bool CheckButton::are_tiles_connected(LinkedList *placedTiles, BoardTile ***table, int rowLen)
+bool CheckButton::are_tiles_connected(LinkedList<TileData> *placedTiles, BoardTile ***table, int rowLen)
 {
-    for (Node *node = placedTiles->head; node != NULL; node = node->next)
+    for (LinkedList<TileData>::Node *node = placedTiles->head; node != NULL; node = node->next)
     {
-        TileData *td = static_cast<TileData *>(node->val);
-        if (is_tile_positioned_correctly(td, table, rowLen))
+        TileData td = node->val;
+        if (is_tile_positioned_correctly(&td, table, rowLen))
             return true;
     }
     return false;
@@ -455,7 +445,7 @@ char *CheckButton::to_string(void *a)
     return result;
 }
 
-void CheckButton::add_to_known_equations(LinkedList *equations)
+void CheckButton::add_to_known_equations(LinkedList<CheckButton::Equation> *equations)
 {
     knownEquations->llcat(equations);
 }
@@ -496,4 +486,9 @@ void CheckButton::show_winner(Player *p1, Player *p2, float width, float height)
     winnerBoard->set_outline_color(Color::Magenta);
     winnerText.setOrigin(GET_ORIGIN(winnerBoard));
     isWinnerKnown = true;
+}
+
+bool CheckButton::Equation::operator==(CheckButton::Equation right)
+{
+    return startI == right.startI && startJ == right.startJ && dir == right.dir && (strcmp(value.c_str(), right.value.c_str()) == 0);
 }
