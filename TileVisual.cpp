@@ -67,7 +67,7 @@ void TileVisual::set_outline_thickness(float thickness)
 void TileVisual::draw(RenderWindow *window)
 {
     bg.draw(window);
-    window->draw(tileText);
+    // window->draw(tileText);
 }
 
 void TileVisual::set_alpha(float alpha)
