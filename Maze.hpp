@@ -5,7 +5,6 @@
 #include "RoundedRectangle.hpp"
 #include "MazeTile.hpp"
 #include "LinkedList.hpp"
-#include "LinkedList.cpp"
 #include <random>
 
 #ifndef SYMBOLS
