@@ -46,6 +46,7 @@ public:
     LinkedList reverse_list();
     LinkedList clone();
     void print(function<char *(T)> c_str);
+    void print();
     void sort();
     void sort(function<int(T, T)> compare);
     void empty_list();
@@ -58,4 +59,5 @@ private:
     void insert(LinkedList<T> *list, T val);
 };
 
+#include "LinkedList.cpp"
 #endif
