@@ -19,7 +19,7 @@ public:
   char get_tile(unsigned int index);
   void add_tile(char tile);
   void print();
-  char *c_str(char c);
+  static char *c_str(char c);
   int get_size();
   bool is_empty();
 };
