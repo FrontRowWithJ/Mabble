@@ -53,7 +53,7 @@ char *TileBag::c_str(char c)
 
 void TileBag::print()
 {
-    tiles->print(NULL);
+    tiles->print(c_str);
 }
 
 int TileBag::get_size()
