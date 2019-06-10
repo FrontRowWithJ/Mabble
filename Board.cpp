@@ -147,7 +147,7 @@ bool Board::remove_tile(float mouseX, float mouseY, float screenX, float screenY
 
 void Board::print_list(LinkedList<TileData> *list)
 {
-    list->print(NULL);
+    list->print();
 }
 
 BoardTile ***Board::get_table()
