@@ -4,16 +4,13 @@
 #include <iostream>
 #include <string>
 #include <cstring>
-// #include <cstring>
 #include <functional>
 #include <math.h>
 #include <chrono>
 #include <unistd.h>
 #include <cstdarg>
-// #include <SFML/Graphics.hpp>
 #include "SFML-2.5.1/include/SFML/Graphics.hpp"
 #include "SFML-2.5.1/include/SFML/System.hpp"
-// #include <SFML/System.hpp>
 using namespace std;
 using namespace sf;
 #ifndef POSITION
