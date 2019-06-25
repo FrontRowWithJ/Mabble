@@ -15,24 +15,25 @@ typedef struct
     int yPos;
     Color c;
 } Square;
-//int xpos = mouse.x - window.x + x_offset
-//int ypos = mouse.y - window.y + y_offset
 int main(int argc, char **argv)
 {
     bool *isTurn = new bool[1]{true};
-    Font f;
-    f.loadFromFile("GeosansLight.ttf");
-    Player *p1 = new Player(10, screenHeight - 60 - 10, 300, 60, 0.8, "Noob2", f, *isTurn);
-    Player *p2 = new Player(screenWidth - 300 - 10, screenHeight - 60 - 10, 300, 60, 0.8, "Noob2", f, !*isTurn);
+    int n = 0;
+    Player *p1 = new Player(10, screenHeight - 60 - 10, 300, 60, 0.8, "Noob2", "lunchds.ttf", *isTurn);
+    Player *p2 = new Player(screenWidth - 300 - 10, screenHeight - 60 - 10, 300, 60, 0.8, "Noob2", "lunchds.ttf", !*isTurn);
     RenderWindow *window = new RenderWindow(VideoMode(screenWidth, screenHeight), "Mabble", Style::Close);
     Event e;
     Mouse m;
     Color c = Color(0xE6, 0xC1, 0x94, 0xFF);
-    Board b = Board(500, 25, screenWidth / 2 - 250, 30, f, Color::Red, c);
-    CheckButton cb = CheckButton(70, 20, screenWidth / 2 - 35, 600, f, 10 + 150, screenHeight - 60 - 10 - 60);
+    const char *fontName = "lunchds.ttf";
+    Board b = Board(500, 25, screenWidth / 2 - 250, 30, fontName, Color::Red, c);
+    CheckButton cb = CheckButton(70, 20, screenWidth / 2 - 35, 600, fontName, 10 + 150, screenHeight - 60 - 10 - 60);
     LinkedList<TileData> *list = new LinkedList<TileData>();
+    Tile *selectedTile;
     while (window->isOpen())
     {
+        Vector2f mousePos = Vector2f(m.getPosition());
+        Vector2f screenPos = Vector2f(window->getPosition());
         window->clear(Color::White);
         while (window->pollEvent(e))
         {
@@ -42,39 +43,25 @@ int main(int argc, char **argv)
                 window->close();
                 break;
             case Event::MouseButtonPressed:
-                Vector2i mousePos = m.getPosition();
-                Vector2i screenPos = window->getPosition();
                 if (e.mouseButton.button == Mouse::Left)
                 {
                     if (*isTurn)
-                        b.set_selected_tile(p1->select_tile(mousePos.x, mousePos.y, screenPos.x, screenPos.y));
+                        selectedTile = p1->select_tile(mousePos, screenPos);
                     else
-                        b.set_selected_tile(p2->select_tile(mousePos.x, mousePos.y, screenPos.x, screenPos.y));
-                    if (b.place_tile(mousePos.x, mousePos.y, screenPos.x, screenPos.y, list))
-                        b.print_list(list);
+                        selectedTile = p2->select_tile(mousePos, screenPos);
                     cb.check(mousePos.x, mousePos.y, screenPos.x, screenPos.y, b, list, p1, p2, isTurn, screenWidth, screenHeight);
                 }
-                else if (e.mouseButton.button == Mouse::Right)
-                {
-                    if (*isTurn)
-                        b.clear_selected_tile(p1->deselect_tile(mousePos.x, mousePos.y, screenPos.x, screenPos.y));
-                    else
-                        b.clear_selected_tile(p2->deselect_tile(mousePos.x, mousePos.y, screenPos.x, screenPos.y));
-                    if (b.remove_tile(mousePos.x, mousePos.y, screenPos.x, screenPos.y, list))
-                        b.print_list(list);
-                }
-                else if (m.isButtonPressed(e.mouseButton.button))
-                {
-                    p1->get_tile_rack()->is_tile_pressed(mousePos, screenPos);
-                }
+                break;
+            case Event::MouseButtonReleased:
+                p1->snap_tile_to_board(&b, list);
+                p2->snap_tile_to_board(&b, list);
                 break;
             }
         }
-        printf("oof0\n");
-        p1->draw(window);
-        p2->draw(window);
         b.draw(window);
         cb.draw(window);
+        p1->draw(window, mousePos, screenPos);
+        p2->draw(window, mousePos, screenPos);
         window->display();
     }
 }

@@ -54,7 +54,6 @@ private:
   Color bgColor;
   Color fgColor;
   Color textColor;
-  Font font;
   float seconds;
   bool isFading;
   Fade f;
@@ -68,10 +67,10 @@ private:
   Text *startButtonText;
   float sbXPos;
   float sbYPos;
-
+  const char*fontName;
 public:
   MabbleIntro();
-  MabbleIntro(float xPos, float yPos, float gap, float iconWidth, float iconHeight, float iconRadius, Color bgColor, Color textColor, Font font);
+  MabbleIntro(float xPos, float yPos, float gap, float iconWidth, float iconHeight, float iconRadius, Color bgColor, Color textColor, const char *fontName);
   void draw(RenderWindow *window);
   void fade(bool isFadingIn);
   void set_opacity(byte_t alpha);

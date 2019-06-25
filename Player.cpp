@@ -4,7 +4,7 @@ Player::Player()
 {
 }
 
-Player::Player(float xPos, float yPos, float width, float height, float fgScale, string playerName, Font font, bool isTurn)
+Player::Player(float xPos, float yPos, float width, float height, float fgScale, string playerName, const char *fontName, bool isTurn)
 {
     this->xPos = xPos;
     this->yPos = yPos;
@@ -18,18 +18,19 @@ Player::Player(float xPos, float yPos, float width, float height, float fgScale,
     auto _time = chrono::steady_clock::now();
     tileBag = new TileBag(TOTAL_PIECES, chrono::duration_cast<chrono::nanoseconds>(_time.time_since_epoch()).count());
     tileRack = new TileRack(xPos, yPos, width, height, fgScale);
-    sb = new ScoreBoard(xPos + width - height, yPos, height, height, font);
+    sb = new Player::ScoreBoard(xPos + width - height, yPos, height, height, fontName);
     char *tiles = new char[NUM_OF_TILES + 1]();
     int i = 0;
     for (; i < NUM_OF_TILES - 5; i++)
         tiles[i] = tileBag->get_tile();
     strcat(tiles, "+-*/=");
     tileRack->gen_visuals();
-    tileRack->gen_tiles(tiles);
+    tileRack->gen_tiles(tiles, fontName);
 }
 
 void Player::update_tileRack()
 {
+    tileRack->reset_TileRack_Position();
     for (int i = 0; i < NUM_OF_TILES; i++)
         tileRack->update_tile(i, tileBag->get_tile(), tileBag->is_empty());
 }
@@ -40,13 +41,11 @@ void Player::update_score(long points)
     sb->update_score_board(points);
 }
 
-void Player::draw(RenderWindow *window)
+void Player::draw(RenderWindow *window, Vector2f mousePos, Vector2f screenPos)
 {
     //? more things are gonna need to be drawn over time
-    tileRack->draw(window, Vector2f(), Vector2f(), Vector2f());
-    printf("Player::draw0\n");
+    tileRack->draw(window, mousePos, screenPos);
     sb->draw(window);
-    printf("Player::draw1\n");
 }
 
 TileRack *Player::get_tile_rack()
@@ -54,19 +53,19 @@ TileRack *Player::get_tile_rack()
     return tileRack;
 }
 
-Player::ScoreBoard::ScoreBoard(float xPos, float yPos, float width, float height, Font font)
+Player::ScoreBoard::ScoreBoard(float xPos, float yPos, float width, float height, const char *fontName)
 {
     this->xPos = xPos;
     this->yPos = yPos;
     this->width = width;
     this->height = height;
     this->score = 0;
-    this->font = font;
     this->bgColor = Color::Black;
     this->textColor = Color::White;
     this->numOfVisuals = 0;
+    this->font.loadFromFile(fontName);
     gen_visuals();
-    gen_text();
+    gen_text(fontName);
 }
 
 void Player::ScoreBoard::gen_visuals()
@@ -79,12 +78,10 @@ void Player::ScoreBoard::gen_visuals()
     visuals[0] = bg;
 }
 
-void Player::ScoreBoard::gen_text()
+void Player::ScoreBoard::gen_text(const char *fontName)
 {
-    scoreText.setCharacterSize(width);
+    scoreText = Text("0", font, width);
     scoreText.setFillColor(textColor);
-    scoreText.setFont(font);
-    scoreText.setString("0");
     FloatRect lb = scoreText.getLocalBounds();
     scoreText.setOrigin(lb.left - xPos - (width - lb.width) / 2.f, lb.top - yPos - (height - lb.height) / 2.f);
 }
@@ -132,18 +129,11 @@ void Player::switch_turn()
     isTurn = !isTurn;
 }
 
-Tile *Player::select_tile(float mouseX, float mouseY, float screenX, float screenY)
+Tile *Player::select_tile(Vector2f mousePos, Vector2f screenPos)
 {
     if (isTurn)
-        return tileRack->select_tile(mouseX, mouseY, screenX, screenY);
+        return tileRack->select_tile(mousePos, screenPos);
     return NULL;
-}
-
-bool Player::deselect_tile(float mouseX, float mouseY, float screenX, float screenY)
-{
-    if (isTurn)
-        return tileRack->deselect_tile(mouseX, mouseY, screenX, screenY);
-    return false;
 }
 
 float Player::get_xPos()
@@ -174,4 +164,10 @@ long Player::get_score()
 string Player::get_playerName()
 {
     return playerName;
+}
+
+void Player::snap_tile_to_board(Board *gameBoard, LinkedList<TileData> *placedTiles)
+{
+    if (isTurn)
+        tileRack->snap_to_board(gameBoard, placedTiles);
 }

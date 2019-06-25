@@ -52,7 +52,7 @@ public:
     void empty_list();
     Node *pop();
     Node *get_parent(Node *node);
-
+    void move_to_top(T val);
 private:
     int count_inner(Node *node);
     void reverse_inner(Node *node, LinkedList<T> *list);

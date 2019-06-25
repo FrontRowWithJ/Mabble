@@ -1,8 +1,9 @@
 #ifndef BOARDTILE_H
 #define BOARDTILE_H
 
-#include "Tile.hpp"
 #include "Util.hpp"
+#include "Tile.hpp"
+#include "RoundedRectangle.hpp"
 
 typedef enum
 {
@@ -10,6 +11,13 @@ typedef enum
   TILE_FULL_TEMP,
   TILE_FULL_PERM
 } BoardTileState;
+typedef enum
+{
+  A,
+  B,
+  C,
+  D
+} Quadrant;
 //? This class defines the behavior of the Tiles on the board
 class BoardTile
 {
@@ -18,20 +26,22 @@ private:
   float xPos;
   float yPos;
   bool isCenter;
+  float radius;
   BoardTileState state; //determines wether or not the selected pieces on the board are changeable
-  Text tileText;
   Color textColor;
-  Font font;
   Color bgColor;
-  RectangleShape *visuals;
-  int numOfVisuals;
+  Color originalColor;
+  RoundedRectangle bg;
+  Font textFont;
+  Text bgText;
   Tile nullTile = Tile();
   Tile *tile = &nullTile;
+  bool isTextGenerated;
   char value;
 
 public:
   BoardTile();
-  BoardTile(float width, float xpos, float ypos, Font font, Color textColor, Color bgColor, bool isCenter);
+  BoardTile(float width, float xpos, float ypos, Color textColor, Color bgColor, const char *fontName, bool isCenter);
   void gen_visuals();
   void draw(RenderWindow *window);
   BoardTileState get_state();
@@ -42,13 +52,21 @@ public:
   void set_xPos(float xPos);
   float get_yPos();
   void set_yPos(float yPos);
-  void gen_text();
+  void set_bgColor(Color bgColor);
   void update_text(char value, Color textColor);
   bool is_center();
   char get_value();
   void set_tile(Tile *tile);
   Tile *get_tile();
   void set_tile_to_null();
+  bool is_empty();
+  void revert_bgColor();
+  Vector2f get_position();
+  void set_quadrant_radius(float radius, Quadrant q);
+
+private:
+  void update_text_position();
+  void gen_text();
 };
 
 #endif

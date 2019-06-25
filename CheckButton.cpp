@@ -3,15 +3,15 @@ CheckButton::CheckButton()
 {
 }
 
-CheckButton::CheckButton(float width, float height, float xPos, float yPos, Font font, float turnXPos, float turnYPos)
+CheckButton::CheckButton(float width, float height, float xPos, float yPos, const char *fontName, float turnXPos, float turnYPos)
 {
     this->width = width;
     this->height = height;
     this->xPos = xPos;
     this->yPos = yPos;
-    this->font = font;
     this->turnsPassed = 0;
     this->isWinnerKnown = false;
+    font.loadFromFile(fontName);
     knownEquations = new LinkedList<CheckButton::Equation>();
     gen_visuals(turnXPos, turnYPos);
     gen_text(turnXPos, turnYPos);
@@ -59,17 +59,12 @@ void CheckButton::gen_visuals(float turnXPos, float turnYPos)
 
 void CheckButton::gen_text(float turnXpos, float turnYpos)
 {
-    text.setFont(font);
-    text.setString("Check");
+    text = Text("Check", font, height);
     text.setFillColor(textColor);
-    text.setCharacterSize(height);
     FloatRect lb = text.getLocalBounds();
     text.setOrigin(lb.left - xPos - (width - lb.width) / 2.f, lb.top - yPos - (height - lb.height) / 2.f);
-
-    turnText.setFont(font);
-    turnText.setString("Your Turn");
+    turnText = Text("Your Turn", font, turnLable->get_height());
     turnText.setFillColor(Color::Black);
-    turnText.setCharacterSize(turnLable->get_height());
     lb = turnText.getLocalBounds();
     turnText.setOrigin(lb.left - turnXpos - (turnLable->get_width() - lb.width) / 2, lb.top - turnYpos - (turnLable->get_height() - lb.top) / 2);
 }
@@ -88,7 +83,7 @@ void CheckButton::draw(RenderWindow *window)
     }
 }
 
-CheckButton::Direction CheckButton::is_same_line(LinkedList<TileData> *placedTiles, BoardTile ***table)
+CheckButton::Direction CheckButton::is_same_line(LinkedList<TileData> *placedTiles, BoardTile **table)
 {
     TileData pos = placedTiles->head->val;
     int i = pos.i, j = pos.j, len = placedTiles->count();
@@ -127,23 +122,23 @@ int CheckButton::compare_down(TileData left, TileData right)
     return left.i < right.i ? -1 : left.i == right.i ? 0 : 1;
 }
 
-bool CheckButton::is_isolated(TileData *td, BoardTile ***table, int rowLen)
+bool CheckButton::is_isolated(TileData *td, BoardTile **table, int rowLen)
 {
     int i = td->i, j = td->j;
     if (i == rowLen / 2 && j == rowLen / 2)
         return false;
-    if (i != 0 && table[i - 1][j]->get_state() != TILE_EMPTY)
+    if (i != 0 && table[i - 1][j].get_state() != TILE_EMPTY)
         return false;
-    if (j != 0 && table[i][j - 1]->get_state() != TILE_EMPTY)
+    if (j != 0 && table[i][j - 1].get_state() != TILE_EMPTY)
         return false;
-    if (i != rowLen - 1 && table[i + 1][j]->get_state() != TILE_EMPTY)
+    if (i != rowLen - 1 && table[i + 1][j].get_state() != TILE_EMPTY)
         return false;
-    if (j != rowLen - 1 && table[i][j + 1]->get_state() != TILE_EMPTY)
+    if (j != rowLen - 1 && table[i][j + 1].get_state() != TILE_EMPTY)
         return false;
     return true;
 }
 
-bool CheckButton::are_tiles_contiguous(Direction d, BoardTile ***table, LinkedList<TileData> *placedTiles, int rowLen)
+bool CheckButton::are_tiles_contiguous(Direction d, BoardTile **table, LinkedList<TileData> *placedTiles, int rowLen)
 {
     if (d == DOWN)
     {
@@ -154,7 +149,7 @@ bool CheckButton::are_tiles_contiguous(Direction d, BoardTile ***table, LinkedLi
         int j = td1.j;
         int end = td2.i;
         for (int i = start; i < end; i++)
-            if (table[i][j]->get_state() == TILE_EMPTY)
+            if (table[i][j].get_state() == TILE_EMPTY)
                 return false;
         return true;
     }
@@ -167,7 +162,7 @@ bool CheckButton::are_tiles_contiguous(Direction d, BoardTile ***table, LinkedLi
         int i = td1.i;
         int end = td1.j;
         for (int j = start; j < end; j++)
-            if (table[i][j]->get_state() == TILE_EMPTY)
+            if (table[i][j].get_state() == TILE_EMPTY)
                 return false;
         return true;
     }
@@ -175,7 +170,7 @@ bool CheckButton::are_tiles_contiguous(Direction d, BoardTile ***table, LinkedLi
         return !is_isolated(&(placedTiles->head->val), table, rowLen);
 }
 
-LinkedList<CheckButton::Equation> *CheckButton::gen_equation_list(BoardTile ***table, int rowLen, LinkedList<TileData> *placedTiles)
+LinkedList<CheckButton::Equation> *CheckButton::gen_equation_list(BoardTile **table, int rowLen, LinkedList<TileData> *placedTiles)
 {
     LinkedList<CheckButton::Equation> *result = new LinkedList<CheckButton::Equation>();
     for (LinkedList<TileData>::Node *node = placedTiles->head; node != NULL; node = node->next)
@@ -193,37 +188,37 @@ LinkedList<CheckButton::Equation> *CheckButton::gen_equation_list(BoardTile ***t
     return result;
 }
 
-CheckButton::Position CheckButton::get_equation_begin_pos(CheckButton::Direction d, BoardTile ***table, int i, int j)
+CheckButton::Position CheckButton::get_equation_begin_pos(CheckButton::Direction d, BoardTile **table, int i, int j)
 {
     int I = i, J = j;
     switch (d)
     {
     case DOWN:
-        while (I != 0 && table[I - 1][J]->get_state() != TILE_EMPTY)
+        while (I != 0 && table[I - 1][J].get_state() != TILE_EMPTY)
             I--;
         return (CheckButton::Position){I, J};
     case RIGHT:
-        while (J != 0 && table[I][J - 1]->get_state() != TILE_EMPTY)
+        while (J != 0 && table[I][J - 1].get_state() != TILE_EMPTY)
             J--;
         return (CheckButton::Position){I, J};
     }
     return (CheckButton::Position){-1, -1};
 }
 
-CheckButton::Equation *CheckButton::gen_equation(BoardTile ***table, int rowLen, CheckButton::Direction d, int startI, int startJ)
+CheckButton::Equation *CheckButton::gen_equation(BoardTile **table, int rowLen, CheckButton::Direction d, int startI, int startJ)
 {
     CheckButton::Equation *eq = new CheckButton::Equation();
     string value = "";
     switch (d)
     {
     case CheckButton::DOWN:
-        for (int i = startI; i < rowLen && table[i][startJ]->get_state() != TILE_EMPTY; i++)
-            value.append(new char[2]{table[i][startJ]->get_value(), '\0'});
+        for (int i = startI; i < rowLen && table[i][startJ].get_state() != TILE_EMPTY; i++)
+            value.append(new char[2]{table[i][startJ].get_value(), '\0'});
         *eq = (CheckButton::Equation){startI, startJ, CheckButton::DOWN, value};
         return eq;
     case CheckButton::RIGHT:
-        for (int j = startJ; j < rowLen && table[startI][j]->get_state() != TILE_EMPTY; j++)
-            value.append(new char[2]{table[startI][j]->get_value(), '\0'});
+        for (int j = startJ; j < rowLen && table[startI][j].get_state() != TILE_EMPTY; j++)
+            value.append(new char[2]{table[startI][j].get_value(), '\0'});
         *eq = (CheckButton::Equation){startI, startJ, CheckButton::RIGHT, value};
         return eq;
     }
@@ -275,12 +270,12 @@ string CheckButton::gen_incorrect_statement_string(LinkedList<CheckButton::Equat
     return result;
 }
 
-void CheckButton::set_to_cant_remove(LinkedList<TileData> *placedTiles, BoardTile ***table)
+void CheckButton::set_to_cant_remove(LinkedList<TileData> *placedTiles, BoardTile **table)
 {
     for (LinkedList<TileData>::Node *node = placedTiles->head; node != NULL; node = node->next)
     {
         TileData td = node->val;
-        table[td.i][td.j]->set_state(TILE_FULL_PERM);
+        table[td.i][td.j].set_state(TILE_FULL_PERM);
     }
 }
 
@@ -386,7 +381,7 @@ void CheckButton::check_player(LinkedList<TileData> *placedTiles, Board *board, 
                             *isPlayerOne = !(*isPlayerOne);
                             player1->switch_turn();
                             player2->switch_turn();
-                            move_turnLable(player2->get_xPos() + player2->get_width() / 2, turnLable->get_yPos());
+                            move_turnLable(player2->get_xPos() + player2->get_width() / 2, turnLable->getPosition().y);
                             turnsPassed++;
                             printf("turnsPassed: %d\n", turnsPassed);
                             printf("There are %d turns left.\n", MAX_NUMBER_OF_TURNS - turnsPassed / 2);
@@ -410,7 +405,7 @@ void CheckButton::check_player(LinkedList<TileData> *placedTiles, Board *board, 
     }
 }
 
-bool CheckButton::are_tiles_connected(LinkedList<TileData> *placedTiles, BoardTile ***table, int rowLen)
+bool CheckButton::are_tiles_connected(LinkedList<TileData> *placedTiles, BoardTile **table, int rowLen)
 {
     for (LinkedList<TileData>::Node *node = placedTiles->head; node != NULL; node = node->next)
     {
@@ -421,28 +416,20 @@ bool CheckButton::are_tiles_connected(LinkedList<TileData> *placedTiles, BoardTi
     return false;
 }
 
-bool CheckButton::is_tile_positioned_correctly(TileData *td, BoardTile ***table, int rowLen)
+bool CheckButton::is_tile_positioned_correctly(TileData *td, BoardTile **table, int rowLen)
 {
     int i = td->i, j = td->j;
     if (i == rowLen / 2 && j == rowLen / 2)
         return true;
-    if (i != 0 && table[i - 1][j]->get_state() == TILE_FULL_PERM)
+    if (i != 0 && table[i - 1][j].get_state() == TILE_FULL_PERM)
         return true;
-    if (j != 0 && table[i][j - 1]->get_state() == TILE_FULL_PERM)
+    if (j != 0 && table[i][j - 1].get_state() == TILE_FULL_PERM)
         return true;
-    if (i != rowLen - 1 && table[i + 1][j]->get_state() == TILE_FULL_PERM)
+    if (i != rowLen - 1 && table[i + 1][j].get_state() == TILE_FULL_PERM)
         return true;
-    if (j != rowLen - 1 && table[i][j + 1]->get_state() == TILE_FULL_PERM)
+    if (j != rowLen - 1 && table[i][j + 1].get_state() == TILE_FULL_PERM)
         return true;
     return false;
-}
-
-char *CheckButton::to_string(void *a)
-{
-    Equation *eq = static_cast<Equation *>(a);
-    char *result = new char[BUFFER_SIZE]();
-    sprintf(result, "pos: (%d, %d), value: %s, direction: %s", eq->startI, eq->startJ, eq->value.c_str(), (int)eq->dir ? "RIGHT" : "DOWN");
-    return result;
 }
 
 void CheckButton::add_to_known_equations(LinkedList<CheckButton::Equation> *equations)

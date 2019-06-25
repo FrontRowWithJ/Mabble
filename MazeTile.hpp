@@ -9,16 +9,16 @@ private:
     RoundedRectangle bg;
     Text text;
     char value;
-    Font font;
     Color operandColor;
     Color operatorColor;
     Color equalColor;
     Color bgColor;
     bool isTextPresent;
+    const char *fontName;
 
 public:
     MazeTile();
-    MazeTile(float xPos, float yPos, float width, float radius, Font font, char value, bool isTextPresent);
+    MazeTile(float xPos, float yPos, float width, float radius, const char *fontName, char value, bool isTextPresent);
     void draw(RenderWindow *window);
     void set_position(float xPos, float yPos);
     void set_xPos(float xPos);

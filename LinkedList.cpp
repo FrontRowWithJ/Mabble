@@ -319,4 +319,12 @@ typename LinkedList<T>::Node *LinkedList<T>::pop()
     return h;
 }
 
+template <typename T>
+void LinkedList<T>::move_to_top(T val)
+{
+    Node *node = remove(val);
+    node->next = head;
+    head = node;
+}
+
 #endif

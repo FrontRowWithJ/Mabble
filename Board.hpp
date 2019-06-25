@@ -4,7 +4,6 @@
 #include "BoardTile.hpp"
 #include "Util.hpp"
 #include "Eval.hpp"
-#include "TileRack.hpp"
 #include "LinkedList.hpp"
 
 #define IS_EQUALS(V1, V2) \
@@ -22,28 +21,29 @@ typedef struct MabbleTile
 class Board
 {
 private:
-  BoardTile ***table;
+  BoardTile **table;
   float width;
   int rowLen;
   float xPos;
   float yPos;
   Tile nullTile = Tile();
-  Tile *selectedTile;
 
 public:
-  Board(float width, int rowLen, float xPos, float yPos, Font font, Color textColor, Color bgColor);
-  bool place_tile(float mouseX, float mouseY, float screenX, float screenY, LinkedList<TileData> *placedTiles);
-  bool remove_tile(float mouseX, float mouseY, float screenX, float screenY, LinkedList<TileData> *placedTiles);
+  Board(float width, int rowLen, float xPos, float yPos, const char *fontName, Color textColor, Color bgColor);
+  void place_tile(LinkedList<TileData> *placedTiles, Tile *selectedTile, int i, int j);
+  void remove_tile(LinkedList<TileData> *placedTiles, int i, int j);
   void clear_board();
   void draw(RenderWindow *window);
-  void set_selected_tile(Tile *selectedTile);
-  void clear_selected_tile(bool canClear);
   void print_list(LinkedList<TileData> *list);
-  BoardTile ***get_table();
+  BoardTile **get_table();
   float get_width();
+  Vector2f get_position();
   int get_rowLen();
 
 private:
-  void gen_board(Font font, Color textColor, Color bgColor);
+  void gen_board(const char *fontName, Color textColor, Color bgColor);
+  void set_radii(int i, int j);
+  void update_tile_radii(BoardTile *t0, BoardTile *t1, Quadrant a, Quadrant b, Quadrant c, Quadrant d);
+  void unset_radii(int i, int j);
 };
 #endif

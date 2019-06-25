@@ -4,39 +4,42 @@ BoardTile::BoardTile()
 {
 }
 
-BoardTile::BoardTile(float width, float xPos, float yPos, Font font, Color textColor, Color bgColor, bool isCenter)
+BoardTile::BoardTile(float width, float xPos, float yPos, Color textColor, Color bgColor, const char *fontName, bool isCenter)
 {
     this->width = width;
     this->xPos = xPos;
     this->yPos = yPos;
-    this->font = font;
     this->textColor = textColor;
-    this->bgColor = isCenter ? Color::Green : bgColor;
+    this->bgColor = this->originalColor = isCenter ? Color::Green : bgColor;
     this->isCenter = isCenter;
     this->value = EMPTY;
-    state = TILE_EMPTY;
-    tileText.setFillColor(textColor);
-    tileText.setFont(font);
+    this->state = TILE_EMPTY;
+    this->textFont.loadFromFile(fontName);
+    this->isTextGenerated = false;
 }
 
 void BoardTile::draw(RenderWindow *window)
 {
-    for (int i = 0; i < numOfVisuals; i++)
-        window->draw(visuals[i]);
-    window->draw(tileText);
+    window->draw(bg);
+    if (isTextGenerated)
+        window->draw(bgText);
 }
 
 void BoardTile::gen_visuals()
 {
-    numOfVisuals = 0;
-    RectangleShape bg(Vector2f(width, width));
-    bg.setFillColor(bgColor);
-    bg.setPosition(Vector2f(xPos, yPos));
-    bg.setOutlineColor(Color::Black);
+    bg = RoundedRectangle(xPos, yPos, width, width, 10, 7);
     bg.setOutlineThickness(1);
-    numOfVisuals++;
-    visuals = new RectangleShape[numOfVisuals];
-    visuals[0] = bg;
+    bg.setFillColor(bgColor);
+    bg.setOutlineColor(Color::Black);
+}
+
+void BoardTile::gen_text()
+{
+    bgText = Text();
+    bgText.setFont(textFont);
+    bgText.setCharacterSize(width);
+    bgText.setFillColor(textColor);
+    isTextGenerated = true;
 }
 
 BoardTileState BoardTile::get_state()
@@ -48,7 +51,7 @@ void BoardTile::set_state(BoardTileState state)
 {
     this->state = state;
     if (state == TILE_FULL_PERM)
-        visuals[0].setOutlineThickness(2);
+        bg.setOutlineThickness(2);
 }
 
 float BoardTile::get_width()
@@ -58,7 +61,10 @@ float BoardTile::get_width()
 
 void BoardTile::set_width(float width)
 {
+    float widthDiff = width - this->width;
     this->width = width;
+    bg.set_size(width, width);
+    bgText.setPosition(bgText.getPosition() + widthDiff / 2);
 }
 
 float BoardTile::get_xPos()
@@ -68,7 +74,11 @@ float BoardTile::get_xPos()
 
 void BoardTile::set_xPos(float xPos)
 {
+    float xDiff = xPos - this->xPos;
     this->xPos = xPos;
+    bg.setPosition(xPos, bg.getPosition().y);
+    Vector2f pos = bgText.getPosition();
+    bgText.setPosition(pos.x + xDiff, pos.y);
 }
 
 float BoardTile::get_yPos()
@@ -78,23 +88,23 @@ float BoardTile::get_yPos()
 
 void BoardTile::set_yPos(float yPos)
 {
+    float yDiff = yPos - this->yPos;
     this->yPos = yPos;
-}
-
-void BoardTile::gen_text()
-{
-    tileText.setFont(font);
-    tileText.setFillColor(textColor);
-    tileText.setCharacterSize(width);
+    bg.setPosition(bg.getPosition().x, yPos);
+    Vector2f pos = bgText.getPosition();
+    bgText.setPosition(pos.x, pos.y + yDiff);
 }
 
 void BoardTile::update_text(char value, Color textColor)
 {
     this->value = value;
-    tileText.setString(new char[2]{value, '\0'});
-    tileText.setFillColor(textColor);
-    FloatRect lb = tileText.getLocalBounds();
-    tileText.setOrigin(lb.left - xPos - (width - lb.width) / 2.f, lb.top - yPos - (width - lb.height) / 2.f);
+    this->textColor = textColor;
+    if (!isTextGenerated)
+        gen_text();
+    char str[2] = {value, '\0'};
+    bgText.setString(str);
+    bgText.setFillColor(textColor);
+    update_text_position();
 }
 
 bool BoardTile::is_center()
@@ -120,4 +130,52 @@ Tile *BoardTile::get_tile()
 void BoardTile::set_tile_to_null()
 {
     tile = &nullTile;
+}
+
+bool BoardTile::is_empty()
+{
+    return state == TILE_EMPTY;
+}
+
+void BoardTile::set_bgColor(Color bgColor)
+{
+    this->bgColor = bgColor;
+    bg.setFillColor(bgColor);
+}
+
+void BoardTile::revert_bgColor()
+{
+    set_bgColor(originalColor);
+}
+
+void BoardTile::update_text_position()
+{
+    FloatRect lb = bgText.getLocalBounds();
+    bgText.setOrigin(lb.left, lb.top);
+    Vector2f pos = bg.getPosition();
+    Vector2f size = bg.get_size();
+    bgText.setPosition(pos + (size - Vector2f(lb.width, lb.height)) / 2);
+}
+
+Vector2f BoardTile::get_position()
+{
+    return Vector2f(xPos, yPos);
+}
+
+void BoardTile::set_quadrant_radius(float radius, Quadrant q)
+{
+    switch (q)
+    {
+    case A:
+        bg.set_radiusA(radius);
+        break;
+    case B:
+        bg.set_radiusB(radius);
+        break;
+    case C:
+        bg.set_radiusC(radius);
+        break;
+    case D:
+        bg.set_radiusD(radius);
+    }
 }

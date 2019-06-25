@@ -4,7 +4,7 @@ Maze::Maze()
 {
 }
 
-Maze::Maze(size_t columnLen, size_t screenWidth, size_t screenHeight, Font f)
+Maze::Maze(size_t columnLen, size_t screenWidth, size_t screenHeight, const char *fontName)
 {
     srand(time(NULL));
     this->screenWidth = screenWidth;
@@ -21,13 +21,13 @@ Maze::Maze(size_t columnLen, size_t screenWidth, size_t screenHeight, Font f)
     this->startPos = -xPos;
     this->displayPos = NULL;
     this->valPos = NULL;
-    this->f = f;
     int numOfVisibleColumns = screenWidth / width;
     int n = (numOfVisibleColumns / 2) * width;
     this->threshold = n - screenWidth;
     this->nextColumn = new bool[this->columnLen];
     this->prevColumn = new bool[this->columnLen];
     this->symbol = "0123456789-+=/*\0";
+    this->fontName = fontName;
     for (int i = 0; i < numOfVisibleColumns / 2 + 1; i++)
         gen_column();
 }
@@ -39,8 +39,9 @@ void Maze::draw(RenderWindow *window)
         Maze::RectArray ra = node->val;
         for (int i = 0; i < ra.len; i++)
         {
+            Vector2f pos = ra.rect[i].getPosition();
             ra.rect[i].draw(window);
-            ra.rect[i].set_position(ra.rect[i].get_xPos() - panSpeed, ra.rect[i].get_yPos());
+            ra.rect[i].setPosition(pos.x - panSpeed, pos.y);
         }
     }
 
@@ -252,6 +253,8 @@ void Maze::gen_text_column()
     {
         if (column0[i])
         {
+            Font f;
+            f.loadFromFile(fontName);
             char value = symbol[rand() % strlen(symbol)];
             ta0->texts[index0] = Text(new char[2]{value, '\0'}, f, width);
             FloatRect lb = ta0->texts[index0].getLocalBounds();
@@ -267,6 +270,8 @@ void Maze::gen_text_column()
         if (column1[i])
         {
             char value = symbol[rand() % strlen(symbol)];
+            Font f;
+            f.loadFromFile(fontName);
             ta1->texts[index1] = Text(new char[2]{value, '\0'}, f, width);
             FloatRect lb = ta1->texts[index1].getLocalBounds();
             ta1->texts[index1].setOrigin(SET_XPOS((currXPos + width), width), SET_YPOS((yPos + i * width), width));

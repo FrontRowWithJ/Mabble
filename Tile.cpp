@@ -8,62 +8,48 @@ Tile::Tile()
     this->isSelected = false;
 }
 
-Tile::Tile(float xPos, float yPos, float width, Font font)
+Tile::Tile(float xPos, float yPos, float width, const char *fontName)
 {
     this->isNull = true;
     this->value = EMPTY;
     this->startXPos = xPos;
     this->startYPos = yPos;
-    this->font = font;
     isOperator = false;
     this->type = OPERATOR;
     this->state = ON_RACK;
     this->isSelected = false;
-    this->tds = STATIC;
-    this->setStep = true;
+    tp = STATIC;
+    this->canSetStep = true;
     this->stepsTaken = 0;
-    int beige = 0xE6C194;
-    bgColor = Color(beige >> 16, (beige >> 8) & 0xFF, beige & 0xFF);
+    this->bgColor = Color::White;
     this->textColor = bgColor;
     isOperator = true;
+    this->fontName = fontName;
+    textFont.loadFromFile(fontName);
+    this->boardPos = Vector2i(-1, -1);
 }
 
-Tile::Tile(char value, float xPos, float yPos, float width, Font font)
+Tile::Tile(char value, float xPos, float yPos, float width, const char *fontName) : Tile(xPos, yPos, width, fontName)
 {
-    this->startXPos = xPos;
-    this->startYPos = yPos;
-    this->value = value;
-    this->font = font;
-    this->type = IS_OPERAND(value) ? OPERAND : value == '=' ? EQUAL_SIGN : OPERATOR;
     this->isNull = false;
-    this->state = ON_RACK;
-    this->isSelected = false;
-    this->tds = STATIC;
-    this->setStep = true;
-    this->stepsTaken = 0;
-    this->visuals = TileVisual(xPos, yPos, width, width, 10, new char[2]{value, '\0'}, font, true);
-    string s = string(new char[2]{value, '\0'});
-    Text t(s, font, width);
-    this->visuals.gen_text(t);
-    int beige = 0xE6C194;
-    bgColor = Color(beige >> 16, (beige >> 8) & 0xFF, beige & 0xFF);
-    Color purple = Color(128, 0, 128, 255);
+    this->value = value;
+    this->type = IS_OPERAND(value) ? OPERAND : value == '=' ? EQUAL_SIGN : OPERATOR;
+    this->bg = RoundedRectangle(xPos, yPos, width, width, 10, 7);
     switch (type)
     {
     case OPERAND:
-        this->textColor = purple;
+        this->textColor = Color(0x270F36FF);
         isOperator = false;
         break;
     case OPERATOR:
-        this->textColor = Color::Red;
+        this->textColor = Color(0xC76B98FF);
         isOperator = true;
         break;
     case EQUAL_SIGN:
-        this->textColor = Color::Black;
+        this->textColor = Color(0xFCC3a3FF);
         isOperator = true;
     }
-    this->visuals.set_text_color(this->textColor);
-    this->visuals.set_bg_color(bgColor);
+    bg.setFillColor(bgColor);
 }
 
 Tile *Tile::select_tile()
@@ -71,8 +57,7 @@ Tile *Tile::select_tile()
     if (!isSelected && value != EMPTY)
     {
         isSelected = true;
-        visuals.set_alpha(MAX_ALPHA / 3);
-        state = IS_SELECTED;
+        tp = MOUSE_POS;
         return this;
     }
     return NULL;
@@ -81,8 +66,8 @@ Tile *Tile::select_tile()
 void Tile::deselect_tile()
 {
     isSelected = false;
-    visuals.set_alpha(MAX_ALPHA);
     state = ON_RACK;
+    tp = TILE_RACK_POS;
 }
 
 void Tile::place_tile()
@@ -97,62 +82,71 @@ bool Tile::is_selected()
 
 float Tile::get_xPos()
 {
-    return visuals.get_position().x;
+    return bg.getPosition().x;
 }
 
 float Tile::get_yPos()
 {
-    return visuals.get_position().y;
+    return bg.getPosition().y;
+}
+
+Vector2f Tile::get_positon()
+{
+    return bg.getPosition();
+}
+
+Vector2f Tile::get_size()
+{
+    return bg.get_size();
 }
 
 float Tile::get_width()
 {
-    return visuals.get_width();
+    return bg.get_width();
 }
 
-void Tile::draw(RenderWindow *window, Vector2f mousePos, Vector2f screenPos, Vector2f boardPos)
+void Tile::draw(RenderWindow *window, Vector2f mousePos, Vector2f screenPos)
 {
-    switch (tds)
+    switch (tp)
     {
     case STATIC:
         break;
     case MOUSE_POS:
-        visuals.set_position(mousePos - screenPos + Vector2f(X_OFFSET, Y_OFFSET));
+        set_position(mousePos - screenPos + Vector2f(X_OFFSET, Y_OFFSET) - bg.get_width() / 2);
         break;
     case TILE_RACK_POS:
-        if (setStep)
+        if (canSetStep)
         {
-            step = (Vector2f(startXPos, startYPos) - visuals.get_position()) / NUM_OF_STEPS;
-            setStep = false;
+            step = (Vector2f(startXPos, startYPos) - bg.getPosition()) / NUM_OF_STEPS;
+            canSetStep = false;
         }
-        visuals.set_position(visuals.get_position() + step);
+        set_position(bg.getPosition() + step);
         if (++stepsTaken == NUM_OF_STEPS)
         {
+            deselect_tile();
             stepsTaken = 0;
-            visuals.set_position(startXPos, startYPos);
-            tds = STATIC;
-            setStep = true;
+            set_position(Vector2f(startXPos, startYPos));
+            tp = STATIC;
+            canSetStep = true;
         }
         break;
-
     case BOARD_POS:
-        if (setStep)
+        if (canSetStep)
         {
-            step = (boardPos - visuals.get_position()) / NUM_OF_STEPS;
-            setStep = false;
+            step = (boardCoords - bg.getPosition()) / NUM_OF_STEPS;
+            canSetStep = false;
         }
-        visuals.set_position(visuals.get_position() + step);
+        set_position(bg.getPosition() + step);
         if (++stepsTaken == NUM_OF_STEPS)
         {
             stepsTaken = 0;
-            visuals.set_position(boardPos);
-            tds = STATIC;
-            setStep = true;
+            bg.setPosition(boardCoords);
+            tp = STATIC;
+            canSetStep = true;
         }
     }
-    printf("Tile::draw0\n");
-    visuals.draw(window);
-    printf("Tile::draw1\n");
+    window->draw(bg);
+    window->draw(tileText);
 }
 
 bool Tile::is_null()
@@ -168,8 +162,8 @@ char Tile::get_value()
 void Tile::set_state(TileState _state)
 {
     state = _state;
-    if (isOperator)
-        deselect_tile();
+    // if (isOperator)
+    //     deselect_tile();
 }
 
 TileState Tile::get_state()
@@ -198,12 +192,56 @@ bool Tile::is_operator()
     return isOperator;
 }
 
-Font Tile::get_font()
+void Tile::set_position_to_tileRack()
 {
-    return font;
+    tp = TILE_RACK_POS;
 }
 
-void Tile::set_TileDrawState(TileDrawState tds)
+void Tile::set_position_to_board(Vector2f boardCoords)
 {
-    this->tds = tds;
+    this->boardCoords = boardCoords;
+    tp = BOARD_POS;
+}
+
+Color Tile::get_bgColor()
+{
+    return bgColor;
+}
+
+const char *Tile::get_fontName()
+{
+    return fontName;
+}
+
+void Tile::gen_visuals()
+{
+    char str[2] = {value, '\0'};
+    tileText = Text(str, textFont, bg.get_size().x);
+    tileText.setFillColor(textColor);
+    FloatRect lb = tileText.getLocalBounds();
+    tileText.setOrigin(lb.left, lb.top);
+    tileText.setPosition(bg.getPosition() + (bg.get_size() - Vector2f(lb.width, lb.height)) / 2);
+}
+
+void Tile::set_position(Vector2f pos)
+{
+    bg.setPosition(pos);
+    FloatRect lb = tileText.getLocalBounds();
+    Vector2f tileSize(lb.width, lb.height);
+    tileText.setPosition(pos + (bg.get_size() - tileSize) / 2.f);
+}
+
+void Tile::set_to_start_position()
+{
+    set_position(Vector2f(startXPos, startYPos));
+}
+
+void Tile::set_boardPos(Vector2i boardPos)
+{
+    this->boardPos = boardPos;
+}
+
+Vector2i Tile::get_boardPos()
+{
+    return boardPos;
 }

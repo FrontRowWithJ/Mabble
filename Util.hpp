@@ -97,6 +97,23 @@ typedef unsigned char byte_t;
 
 #ifndef V2F_OPERATOR_OVERLOAD
 #define V2F_OPERATOR_OVERLOAD
+namespace vector_op
+{
+
+static Vector2f operator*(Vector2f left, Vector2f right)
+{
+    return Vector2f(left.x * right.x, left.y * right.y);
+}
+
+static Vector2f operator+(Vector2f left, Vector2f right)
+{
+    return Vector2f(left.x + right.x, left.y + right.y);
+}
+
+static Vector2f operator-(Vector2f left, Vector2f right)
+{
+    return Vector2f(left.x - right.x, left.y - right.y);
+}
 
 static Vector2f operator+(Vector2f v, float constant)
 {
@@ -122,6 +139,59 @@ static Vector2f operator/(Vector2f left, Vector2f right)
 {
     return Vector2f(left.x / right.x, left.y / right.y);
 }
+
+static bool operator>(Vector2f left, Vector2f right)
+{
+    return left.x > right.x && left.y > right.y;
+}
+
+static bool operator>=(Vector2f left, Vector2f right)
+{
+    return left.x >= right.x && left.y >= right.y;
+}
+
+static bool operator<(Vector2f left, Vector2f right)
+{
+    return left.x < right.x && left.y < right.y;
+}
+
+static bool operator<=(Vector2f left, Vector2f right)
+{
+    return left.x <= right.x && left.y <= right.y;
+}
+
+static void operator-=(Vector2f &left, const Vector2f &right)
+{
+    left = left - right;
+}
+
+static void operator/=(Vector2f &left, const Vector2f &right)
+{
+    left = left / right;
+}
+
+static void operator*=(Vector2f &left, const Vector2f &right)
+{
+    left = left * right;
+}
+
+static void operator/=(Vector2f &left, const float right)
+{
+    left.x /= right;
+    left.y /= right;
+}
+
+static void operator+=(Vector2f &left, const float right)
+{
+    left.x *= right;
+    left.y *= right;
+}
+
+static bool operator!=(Vector2i left, Vector2i right)
+{
+    return left.x != right.x || left.y != right.y;
+}
+} // namespace vector_op
 
 #endif
 

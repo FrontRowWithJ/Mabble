@@ -34,21 +34,20 @@ private:
 		float height;
 		long score;
 		Text scoreText;
-		Font font;
 		RectangleShape *visuals;
 		Color bgColor;
 		Color textColor;
 		int numOfVisuals;
-
+		Font font;
 	public:
-		ScoreBoard(float xPos, float yPos, float width, float height, Font font);
+		ScoreBoard(float xPos, float yPos, float width, float height, const char * fontName);
 		void update_score_board(long score);
 		void draw(RenderWindow *window);
 		static char *ltoa(long num);
 
 	private:
 		void gen_visuals();
-		void gen_text();
+		void gen_text(const char*fontName);
 	};
 
 private:
@@ -63,26 +62,26 @@ private:
 	TileBag *tileBag;
 	TileRack *tileRack;
 	string playerName;
-	Font font;
 	Text nameText;
 	Text scoreText;
-	ScoreBoard *sb;
+	Player::ScoreBoard *sb;
 
 public:
 	Player();
-	Player(float xPos, float yPos, float width, float height, float fgScale, string playerName, Font font, bool isTurn);
-	void draw(RenderWindow *window);
+	Player(float xPos, float yPos, float width, float height, float fgScale, string playerName, const char *fontName, bool isTurn);
+
+	void draw(RenderWindow *window, Vector2f mousePos, Vector2f screenPos);
 	void update_tileRack();
 	void update_score(long points);
 	TileRack *get_tile_rack();
 	void switch_turn();
-	Tile *select_tile(float mouseX, float mouseY, float screenX, float screenY);
-	bool deselect_tile(float mouseX, float mouseY, float screenX, float screenY);
+	Tile *select_tile(Vector2f mousePos, Vector2f screenPos);
 	float get_xPos();
 	float get_yPos();
 	float get_width();
 	float get_height();
 	long get_score();
 	string get_playerName();
+	void snap_tile_to_board(Board *board, LinkedList<TileData> *placedTiles);
 };
 #endif

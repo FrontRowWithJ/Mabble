@@ -4,12 +4,11 @@ MazeTile::MazeTile()
 {
 }
 
-MazeTile::MazeTile(float xPos, float yPos, float width, float radius, Font font, char value, bool isTextPresent)
+MazeTile::MazeTile(float xPos, float yPos, float width, float radius, const char*fontName, char value, bool isTextPresent)
 {
     bg = RoundedRectangle(xPos, yPos, width, width, radius, 7);
     this->value = value;
-    this->font = font;
-    int alpha = static_cast<int>(255 * 0.5);
+    int alpha = (int)(256.f * 0.5);
     this->operandColor = COLOR(0x270F36, alpha);
     this->operatorColor = COLOR(0x632B6C, alpha);
     this->equalColor = COLOR(0xC76B98, alpha);
@@ -18,14 +17,18 @@ MazeTile::MazeTile(float xPos, float yPos, float width, float radius, Font font,
     bg.set_fill_color(bgColor);
     bg.set_outline_color(bgColor);
     this->isTextPresent = isTextPresent;
+    this->fontName = fontName;
 }
 
 void MazeTile::gen_text()
 {
-    float xPos = bg.get_xPos(), yPos = bg.get_yPos(), width = bg.get_width();
-    text = Text(new char[2]{value, '\0'}, font, width);
+    Vector2f pos = bg.getPosition();
+    float width = bg.get_width();
+    Font f;
+    f.loadFromFile(fontName);
+    text = Text(new char[2]{value, '\0'}, f, width);
     FloatRect lb = text.getLocalBounds();
-    text.setOrigin(SET_XPOS(xPos, width), SET_YPOS(yPos, width));
+    text.setOrigin(SET_XPOS(pos.x, width), SET_YPOS(pos.y, width));
     if (value >= '0' && value <= '9')
         text.setFillColor(operandColor);
     else if (value == '/' || value == '+' || value == '*' || value == '-')
@@ -56,12 +59,12 @@ void MazeTile::set_position(float xPos, float yPos)
 
 float MazeTile::get_xPos()
 {
-    return bg.get_xPos();
+    return bg.getPosition().x;
 }
 
 float MazeTile::get_yPos()
 {
-    return bg.get_yPos();
+    return bg.getPosition().y;
 }
 
 void MazeTile::set_fill_color(Color bgColor)
@@ -96,12 +99,10 @@ void MazeTile::set_radiusD()
 
 void MazeTile::set_xPos(float xPos)
 {
-    float yPos = bg.get_yPos();
-    set_position(xPos, yPos);
+    set_position(xPos, bg.getPosition().y);
 }
 
 void MazeTile::set_yPos(float yPos)
 {
-    float xPos = bg.get_xPos();
-    set_position(xPos, yPos);
+    set_position(bg.getPosition().x, yPos);
 }

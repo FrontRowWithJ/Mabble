@@ -42,7 +42,6 @@ private:
     float panSpeed;
     float threshold;
     float startPos;
-    Font f;
     LinkedList<RoundedRectangle *>::Node *displayPos;
     LinkedList<bool *>::Node *valPos;
     bool oof = false;
@@ -50,10 +49,11 @@ private:
     bool *prevColumn;
     float currXPos;
     const char *symbol;
+    const char *fontName;
 
 public:
     Maze();
-    Maze(size_t columnLen, size_t screenWidth, size_t screenHeight, Font f);
+    Maze(size_t columnLen, size_t screenWidth, size_t screenHeight, const char *fontName);
     int get_width();
     int get_height();
     void draw(RenderWindow *window);
